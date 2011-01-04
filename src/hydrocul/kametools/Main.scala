@@ -16,6 +16,7 @@ object Main {
   }
 
   def printHelp(){
+    println("kametools now");
   }
 
 }
