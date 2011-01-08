@@ -23,6 +23,10 @@ class ObjectBank(dirName: String){
     save(name, Some(Field(typeName, value)));
   }
 
+  def remove(name: String){
+    save(name, None);
+  }
+
   import java.io.File;
   import java.io.FileInputStream;
   import java.io.FileNotFoundException;
@@ -61,12 +65,14 @@ class ObjectBank(dirName: String){
       value match {
         case Some(obj) =>
           try {
+            (new File(dirName)).mkdirs();
             val fname = dirName + File.separator + name;
             val fop = new FileOutputStream(fname);
             val oop = new ObjectOutputStream(fop);
             try {
               oop.writeObject(obj);
             } finally {
+              oop.flush();
               oop.close();
             }
           } catch {

@@ -3,7 +3,9 @@ package hydrocul.kametools;
 object Main {
 
   private val apps: Map[String, App] = Map(
-    "now" -> now.Now
+    "now" -> now.Now,
+    "ls" -> ls.Ls,
+    "ll" -> ls.Ls
   );
 
   def main(args: Array[String]){
