@@ -1,5 +1,7 @@
 package hydrocul.kametools;
 
+import java.io.File;
+
 object Main {
 
   private val apps: Map[String, App] = Map(
@@ -10,6 +12,13 @@ object Main {
   );
 
   def main(args: Array[String]){
+
+    if(System.getProperty("kt.platform")==null){
+      if(File.separatorChar=='\\'){
+        System.setProperty("kt.platform", "Windows");
+      }
+    }
+
     if(args.size == 0){
       printHelp();
     } else {
