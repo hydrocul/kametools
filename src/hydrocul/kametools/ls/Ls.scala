@@ -54,10 +54,19 @@ object Ls extends App {
 
     var map = env.objectBank.getOrElse[Map[File, String]]("$files", Map());
 
+    def createRandom(len: Int): String = {
+      val ret = new StringBuilder();
+      (1 to len).foreach { _ =>
+        val r = (Math.random * 26).asInstanceOf[Int];
+        ret.append(('a' + r).asInstanceOf[Char]);
+      }
+      ret.toString;
+    }
+
     list.foreach { f: File =>
       @tailrec
       def createName(): String = {
-        val r = StringLib.createRandomString(3);
+        val r = createRandom(3);
         env.objectBank.load("$" + r) match {
           case None => r;
           case Some(_) => createName();
