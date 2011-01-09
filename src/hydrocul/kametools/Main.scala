@@ -5,7 +5,8 @@ object Main {
   private val apps: Map[String, App] = Map(
     "now" -> now.Now,
     "ls" -> ls.Ls,
-    "ll" -> ls.Ls
+    "ll" -> ls.Ls,
+    "open" -> open.Open
   );
 
   def main(args: Array[String]){

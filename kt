@@ -7,6 +7,8 @@ fi
 KT_PLATFORM=
 if [ `uname` = "Darwin" ] ; then
   KT_PLATFORM="Mac"
+else
+  KT_PLATFORM="Gnome"
 fi
 
 scala -Dkt.platform=$KT_PLATFORM -cp "$KT_HOME/class:$KT_HOME/lib/*" hydrocul.kametools.Main "$@"
