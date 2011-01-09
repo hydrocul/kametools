@@ -35,15 +35,15 @@ class ObjectBank(dirName: String){
   import java.io.ObjectInputStream;
   import java.io.ObjectOutputStream;
 
+  import scala.actors.Actor;
   import scala.actors.Actor.loop
   import scala.actors.Actor.react;
   import scala.actors.Actor.reply;
-  import scala.actors.DaemonActor;
 
   private case class LoadAction(name: String);
   private case class SaveAction(name: String, value: Option[Field]);
 
-  private val ioActor = new DaemonActor(){ def act(){
+  private val ioActor = new Actor(){ def act(){
 
     def load(name: String): Option[Field] = {
       try {
