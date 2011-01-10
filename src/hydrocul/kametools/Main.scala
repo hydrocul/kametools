@@ -8,7 +8,8 @@ object Main {
     "now" -> now.Now,
     "ls" -> ls.Ls,
     "ll" -> ls.Ls,
-    "open" -> open.Open
+    "open" -> open.Open,
+    "print" -> print.Print
   );
 
   def main(args: Array[String]){
