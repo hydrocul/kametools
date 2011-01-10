@@ -10,7 +10,8 @@ object Main {
     "ll" -> ls.Ls,
     "open" -> open.Open,
     "print" -> print.Print,
-    "groovy" -> groovy.EvaluateGroovy
+    "groovy" -> groovyevaluator.EvaluateGroovy,
+    "scala" -> scalaevaluator.EvaluateScala
   );
 
   def main(args: Array[String]){

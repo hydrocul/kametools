@@ -19,7 +19,7 @@ class ObjectBank(dirName: String){
     }
   }
 
-  def put(name: String, typeName: String, value: AnyRef){
+  def put(name: String, typeName: String, value: Any){
     save(name, Some(Field(typeName, value)));
   }
 
@@ -177,7 +177,7 @@ class ObjectBank(dirName: String){
 
 object ObjectBank {
 
-  case class Field(typeName: String, value: AnyRef){
+  case class Field(typeName: String, value: Any){
 
     def get[A]: A = value.asInstanceOf[A];
 

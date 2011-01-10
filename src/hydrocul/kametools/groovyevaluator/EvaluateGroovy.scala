@@ -1,4 +1,4 @@
-package hydrocul.kametools.groovy;
+package hydrocul.kametools.groovyevaluator;
 
 import java.io.File;
 

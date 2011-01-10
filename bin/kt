@@ -16,4 +16,5 @@ else
   KT_PLATFORM="Gnome"
 fi
 
-scala -Dkt.platform=$KT_PLATFORM -cp "$KT_HOME/class:$KT_HOME/lib/*" hydrocul.kametools.Main "$@"
+java -Dkt.platform=$KT_PLATFORM -cp "$KT_HOME/class:$KT_HOME/lib/*:$SCALA_HOME/lib/*" hydrocul.kametools.Main "$@"
+#scala -Dkt.platform=$KT_PLATFORM -cp "$KT_HOME/class:$KT_HOME/lib/*" hydrocul.kametools.Main "$@"
