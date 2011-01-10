@@ -1,7 +1,12 @@
 #!/bin/sh
 
 if [ -z "$KT_HOME" ] ; then
-  KT_HOME="."
+  KT_HOME=$0
+  if [ -n "`readlink $KT_HOME`" ] ; then
+    KT_HOME="`readlink $KT_HOME`"
+  fi
+  KT_HOME="`dirname $KT_HOME`"
+  KT_HOME="`dirname $KT_HOME`"
 fi
 
 KT_PLATFORM=
