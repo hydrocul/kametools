@@ -18,6 +18,7 @@ if [ $? -ne 0 ] ; then
   buildlib_dl_scalastm
   buildlib_dl_commons_cli
   buildlib_dl_kameutil
+  buildlib_dl_groovy
 fi
 
 buildlib_compile

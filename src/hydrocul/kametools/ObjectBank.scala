@@ -44,6 +44,9 @@ class ObjectBank(dirName: String){
   import scala.actors.Actor.reply;
   import scala.actors.DaemonActor;
 
+  import groovy.lang.{Binding => GroovyBinding};
+  import groovy.lang.GroovyShell;
+
   private case class LoadAction(name: String);
   private case class SaveAction(name: String, value: Option[Field]);
 
@@ -56,6 +59,8 @@ class ObjectBank(dirName: String){
           Some(loadString(fname));
         } else if((new File(fname + ".dat")).exists){
           Some(loadObject(fname));
+        } else if((new File(fname + ".groovy")).exists){
+          Some(loadGroovyObject(fname));
         } else {
           None;
         }
@@ -65,7 +70,19 @@ class ObjectBank(dirName: String){
     }
 
     def loadString(fname: String): Field = {
-      val fip = new FileInputStream(fname + "-string.txt");
+      Field("java.lang.String", loadStringSub(fname, "-string.txt"));
+    }
+
+    def loadGroovyObject(fname: String): Field = {
+      val source = loadStringSub(fname, ".groovy");
+      val binding = new GroovyBinding();
+      val shell = new GroovyShell(binding);
+      val result = shell.evaluate(source);
+      Field("AnyRef", result);
+    }
+
+    def loadStringSub(fname: String, fnamePostfix: String): String = {
+      val fip = new FileInputStream(fname + fnamePostfix);
       val reader = new BufferedReader(new InputStreamReader(fip));
       val buf = new JStringBuilder();
       try {
@@ -75,7 +92,7 @@ class ObjectBank(dirName: String){
           buf.append(buf2, 0, len);
           len = reader.read(buf2, 0, buf2.length);
         }
-        Field("java.lang.String", buf.toString);
+        buf.toString;
       } finally {
         reader.close();
       }
@@ -112,7 +129,11 @@ class ObjectBank(dirName: String){
     }
 
     def saveString(fname: String, str: String){
-      val fop = new FileOutputStream(fname + ".txt");
+      saveStringSub(fname, "-string.txt", str);
+    }
+
+    def saveStringSub(fname: String, fnamePostfix: String, str: String){
+      val fop = new FileOutputStream(fname + fnamePostfix);
       val writer = new OutputStreamWriter(fop);
       try {
         writer.write(str);
