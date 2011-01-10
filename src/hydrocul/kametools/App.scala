@@ -15,7 +15,8 @@ object App {
   class Env(val objectBank: ObjectBank);
 
   def getArgFiles(args: Seq[String], currentDirIfEmpty: Boolean,
-    extractDir: Boolean, env: Env): Seq[File] = {
+    extractDir: Boolean, notExistsOk: Boolean,
+    enableObjectKey: Boolean, env: Env): Seq[File] = {
 
     def compare(name1: String, name2: String): Int = {
       name1.compareToIgnoreCase(name2);
@@ -23,42 +24,46 @@ object App {
 
     if(currentDirIfEmpty && args.size==0){
       // 引数がない場合
-      val currFile = new File(System.getProperty("user.dir"));
-      if(extractDir){
-        val list = currFile.listFiles;
-        if(list==null){
-          throw new Exception();
-        }
-        list;
-      } else {
-        currFile :: Nil;
-      }
+      getArgFiles(Array("./"), false, extractDir, notExistsOk, false, env);
     } else {
       args.flatMap { a =>
-        if(extractDir && (a.endsWith("/") || a.endsWith("\\"))){
-          // 引数がスラッシュで終わっている場合は
-          // ディレクトリの中を表示する
-          val f = new File(a);
-          val l = f.listFiles;
-          if(l==null){
-            f :: Nil;
-          } else {
-            l;
-          }
-        } else {
-          // 引数で指定されたファイルを表示する
-          val f = new File(a);
-          if(f.exists){
-            f :: Nil;
-          } else {
-            env.objectBank.load("$" + a) match {
-              case None => Nil;
-              case Some(ObjectBank.Field(_, f2)) => f2 match {
-                case f3: File => f3 :: Nil;
-                case _ => Nil;
+        val f = new File(a);
+        if(f.exists || notExistsOk){
+          if(extractDir && (a.endsWith("/") || a.endsWith("\\"))){
+            // 引数がスラッシュで終わっている場合は
+            // ディレクトリの中を表示する
+            if(f.exists){
+              val l = f.listFiles;
+              if(l==null){
+                Nil;
+              } else {
+                l;
               }
+            } else {
+              Nil;
+            }
+          } else {
+            f :: Nil;
+          }
+        } else if(enableObjectKey){
+          val (head, tail) = {
+            val i = a.indexOf('/');
+            if(i < 0){
+              (a, "");
+            } else {
+              (a.substring(0, i), a.substring(i));
             }
           }
+          val k = (env.objectBank.load("$" + head) match {
+            case None => Nil;
+            case Some(ObjectBank.Field(_, f)) => f match {
+              case f: File => f.getCanonicalPath :: Nil;
+              case _ => Nil;
+            }
+          }).map(p => p + tail).toArray;
+          getArgFiles(k, false, extractDir, notExistsOk, false, env);
+        } else {
+          Nil;
         }
       }
     }.filter(_.exists).map(_.getCanonicalFile).

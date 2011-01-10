@@ -13,7 +13,7 @@ object Ls extends App {
 
   def main(cmdName: String, args: Array[String], env: App.Env){
 
-    val list: Seq[File] = App.getArgFiles(args, true, true, env);
+    val list: Seq[File] = App.getArgFiles(args, true, true, false, true, env);
 
     var map = env.objectBank.getOrElse[Map[File, String]]("$files", Map());
 
