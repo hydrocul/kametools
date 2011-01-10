@@ -9,7 +9,8 @@ object Main {
     "ls" -> ls.Ls,
     "ll" -> ls.Ls,
     "open" -> open.Open,
-    "print" -> print.Print
+    "print" -> print.Print,
+    "groovy" -> groovy.EvaluateGroovy
   );
 
   def main(args: Array[String]){
