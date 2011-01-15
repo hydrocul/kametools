@@ -35,7 +35,8 @@ object Open extends App {
   }
 
   private def openMac(f: File){
-    cannotOpen();
+    val pb = new ProcessBuilder("open", f.getCanonicalPath);
+    pb.start();
   }
 
   private def openGnome(f: File){
