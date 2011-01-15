@@ -28,20 +28,23 @@ object Open extends App {
   private def openWindows(f: File){
     val pb = new ProcessBuilder("cmd.exe", "/C", "start", f.getCanonicalPath);
     pb.start();
+    println("open " + f.getCanonicalPath);
   }
 
   private def openCygwin(f: File){
-    cannotOpen();
+    openWindows(f);
   }
 
   private def openMac(f: File){
     val pb = new ProcessBuilder("open", f.getCanonicalPath);
     pb.start();
+    println("open " + f.getCanonicalPath);
   }
 
   private def openGnome(f: File){
     val pb = new ProcessBuilder("gnome-open", f.getCanonicalPath);
     pb.start();
+    println("open " + f.getCanonicalPath);
   }
 
   private def cannotOpen(){
