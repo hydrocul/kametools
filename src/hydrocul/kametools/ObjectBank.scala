@@ -1,5 +1,7 @@
 package hydrocul.kametools;
 
+import java.io.File;
+
 class ObjectBank(dirName: String){
 
   import ObjectBank._;
@@ -27,8 +29,49 @@ class ObjectBank(dirName: String){
     save(name, None);
   }
 
+  def getFiles: Map[File, String] = {
+    getOrElse[Map[File, String]]("$files", Map());
+  }
+
+  def putFiles(fileMap: Map[File, String]){
+    put("$files", "scala.collection.immutable.Map[java.io.File,java.lang.String]", fileMap);
+  }
+
+  def putFile(file: File, fileMap: Map[File, String]): (String, Map[File, String]) = {
+
+    def createRandom(len: Int): String = {
+      val ret = new StringBuilder();
+      (1 to len).foreach { _ =>
+        val r = (math.random * 26).asInstanceOf[Int];
+        ret.append(('a' + r).asInstanceOf[Char]);
+      }
+      ret.toString;
+    }
+
+    def createName(): String = {
+      val r = createRandom(3);
+      load("$" + r) match {
+        case None => r;
+        case Some(_) => createName();
+      }
+    }
+
+    val ret = {
+      fileMap.get(file) match {
+        case Some(s) => (s, fileMap);
+        case None =>
+          val s = createName();
+          (s, fileMap + (file -> s));
+      }
+    }
+
+    put("$" + ret._1, "java.io.File", file);
+
+    ret;
+
+  }
+
   import java.io.BufferedReader;
-  import java.io.File;
   import java.io.FileInputStream;
   import java.io.FileNotFoundException;
   import java.io.FileOutputStream;

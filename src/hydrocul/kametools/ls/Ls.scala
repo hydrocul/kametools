@@ -15,40 +15,15 @@ object Ls extends App {
 
     val list: Seq[File] = App.getArgFiles(args, true, true, false, true, env);
 
-    var map = env.objectBank.getOrElse[Map[File, String]]("$files", Map());
-
-    def createRandom(len: Int): String = {
-      val ret = new StringBuilder();
-      (1 to len).foreach { _ =>
-        val r = (math.random * 26).asInstanceOf[Int];
-        ret.append(('a' + r).asInstanceOf[Char]);
-      }
-      ret.toString;
-    }
+    var map = env.objectBank.getFiles;
 
     list.foreach { f: File =>
-      @tailrec
-      def createName(): String = {
-        val r = createRandom(3);
-        env.objectBank.load("$" + r) match {
-          case None => r;
-          case Some(_) => createName();
-        }
-      }
-      val name = {
-        map.get(f) match {
-          case Some(s) => s;
-          case None =>
-            val s = createName();
-            map = map + (f -> s);
-            s;
-        }
-      }
-      env.objectBank.put("$" + name, "java.io.File", f);
-      println("%s %s".format(name, f));
+      val s = env.objectBank.putFile(f, map);
+      println("%s %s".format(s._1, f));
+      map = s._2;
     }
 
-    env.objectBank.put("$files", "Map[java.io.File, String]", map);
+    env.objectBank.putFiles(map);
 
   }
 
