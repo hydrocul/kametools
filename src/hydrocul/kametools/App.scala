@@ -14,17 +14,18 @@ object App {
 
   class Env(val objectBank: ObjectBank);
 
-  def getArgFiles(args: Seq[String], currentDirIfEmpty: Boolean,
-    extractDir: Boolean, notExistsOk: Boolean,
-    enableObjectKey: Boolean, env: Env): Seq[File] = {
+  def compareFileName(name1: String, name2: String): Int = {
+    name1.compareToIgnoreCase(name2);
+  }
 
-    def compare(name1: String, name2: String): Int = {
-      name1.compareToIgnoreCase(name2);
-    }
+  def getArgFiles(args: Seq[String], currentDirIfEmpty: Boolean,
+    extractDir: Boolean, reverseOrder: Boolean,
+    notExistsOk: Boolean, enableObjectKey: Boolean, env: Env): Seq[File] = {
 
     if(currentDirIfEmpty && args.size==0){
       // 引数がない場合
-      getArgFiles(Array("./"), false, extractDir, notExistsOk, false, env);
+      getArgFiles(Array("./"), false, extractDir, reverseOrder,
+        notExistsOk, false, env);
     } else {
       args.flatMap { a =>
         val f = new File(a);
@@ -61,13 +62,17 @@ object App {
               case _ => Nil;
             }
           }).map(p => p + tail).toArray;
-          getArgFiles(k, false, extractDir, notExistsOk, false, env);
+          getArgFiles(k, false, extractDir, reverseOrder,
+            notExistsOk, false, env);
         } else {
           Nil;
         }
       }
     }.filter(_.exists).map(_.getCanonicalFile).
-      sortWith { (a, b) => compare(a.getName, b.getName) < 0 }
+      sortWith { (a, b) => (if(reverseOrder)
+        compareFileName(a.getPath, b.getPath) > 0
+      else
+        compareFileName(a.getPath, b.getPath) < 0) }
 
   }
 

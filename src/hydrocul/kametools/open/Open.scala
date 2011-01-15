@@ -9,7 +9,8 @@ object Open extends App {
 
   def main(cmdName: String, args: Array[String], env: App.Env){
 
-    val list: Seq[File] = App.getArgFiles(args, true, false, false, true, env);
+    val list: Seq[File] = App.getArgFiles(args, true, false, false,
+      false, true, env);
 
     if(list.size > 3){
       println("ファイルが多すぎです");
