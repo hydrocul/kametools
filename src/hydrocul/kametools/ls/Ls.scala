@@ -1,6 +1,9 @@
 package hydrocul.kametools.ls;
 
 import java.io.File;
+import java.util.regex.PatternSyntaxException;
+
+import scala.util.matching.Regex;
 
 import org.apache.commons.cli.{ Option => CliOption }
 import org.apache.commons.cli.Options;
@@ -20,11 +23,18 @@ object Ls extends App {
     val options = new Options();
     options.addOption("r", false, "list subdirectories recursively");
     options.addOption( {
-      val op = new CliOption("R", "recursive", true, "list subdirectories recursively");
+      val op = new CliOption("R", "recursive", true,
+        "list subdirectories recursively");
       op.setArgName("depth");
       op;
     } );
     options.addOption("reverse", false, "reverse order while sorting");
+    options.addOption( {
+      val op = new CliOption("p", "pattern", true,
+        "");
+      op.setArgName("pattern");
+      op;
+    } );
     val parser = new PosixParser();
     val cli = try {
       parser.parse(options, args);
@@ -49,11 +59,17 @@ object Ls extends App {
       0;
     }
 
-    val reverse = cli.hasOption("reverse");
+    val reverse: Boolean = cli.hasOption("reverse");
+
+    val patterns: Option[String] = if(cli.hasOption("pattern")){
+      Some(cli.getOptionValue("pattern"));
+    } else {
+      None;
+    }
 
     val vd = VirtualDirectory.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
-    val vd2 = LsVirtualDirectory(vd, depth, reverse);
+    val vd2 = LsVirtualDirectory(vd, depth, reverse, patterns);
 
     val list: Stream[File] = vd2.getList;
 
@@ -74,10 +90,15 @@ object Ls extends App {
   }
 
   case class LsVirtualDirectory(vd: VirtualDirectory,
-    depth: Int, reverseOrder: Boolean) extends VirtualDirectory {
+    depth: Int, reverseOrder: Boolean,
+    pattern: Option[String]) extends VirtualDirectory {
 
     override def getName = vd.getName +
-      (if(depth==0) "" else " recursive (%d)".format(depth));
+      (if(depth==0) "" else " recursive (%d)".format(depth))
+      (pattern match {
+        case None => "";
+        case Some(p) => " pattern: %s".format(p);
+      } );
 
     override def getList = extractDir();
 
@@ -87,26 +108,40 @@ object Ls extends App {
 
     private def extractDir(): Stream[File] = {
       val l = if(reverseOrder) vd.getList.reverse else vd.getList;
-      extractDir(l, depth, reverseOrder, Stream.empty);
+      def cond(file: File): Boolean = {
+        pattern match {
+          case None => ;
+          case Some(pattern) =>
+            val name = file.getName;
+            val patterns = pattern.split(" +");
+            if(patterns.exists(p => name.indexOf(p) < 0))
+              return false;
+        }
+        true;
+      }
+      extractDir(l, depth, reverseOrder, cond, Stream.empty);
     }
 
     private def extractDir(files: Stream[File], depth: Int, reverseOrder: Boolean,
-      next: => Stream[File]): Stream[File] = {
+      cond: File=>Boolean, next: => Stream[File]): Stream[File] = {
 
       if(files.isEmpty){
         next;
       } else {
         val f = files.head;
-        if(depth == 0){
-          Stream.cons(f, extractDir(files.tail, depth, reverseOrder, next));
+        lazy val t: Stream[File] = if(depth == 0){
+          extractDir(files.tail, depth, reverseOrder, cond, next);
         } else {
-          Stream.cons(f, {
-            val l: Stream[File] = VirtualDirectory.
-              OneFileVirtualDirectory(f, true).getList;
-            val l2 = if(reverseOrder) l.reverse else l;
-            extractDir(l2, depth - 1, reverseOrder,
-              extractDir(files.tail, depth, reverseOrder, next));
-          });
+          val l: Stream[File] = VirtualDirectory.
+            OneFileVirtualDirectory(f, true).getList;
+          val l2 = if(reverseOrder) l.reverse else l;
+          extractDir(l2, depth - 1, reverseOrder, cond,
+            extractDir(files.tail, depth, reverseOrder, cond, next));
+        }
+        if(cond(f)){
+          Stream.cons(f, t);
+        } else {
+          t;
         }
       }
     }
