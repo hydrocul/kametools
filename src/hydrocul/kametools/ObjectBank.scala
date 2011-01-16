@@ -29,15 +29,19 @@ class ObjectBank(dirName: String){
     save(name, None);
   }
 
-  def getFiles: Map[File, String] = {
-    getOrElse[Map[File, String]]("$files", Map());
+  def getFiles: Map[VirtualDirectory, String] = {
+    getOrElse[Map[VirtualDirectory, String]]("$files", Map());
   }
 
-  def putFiles(fileMap: Map[File, String]){
-    put("$files", "scala.collection.immutable.Map[java.io.File,java.lang.String]", fileMap);
+  def putFiles(fileMap: Map[VirtualDirectory, String]){
+    put("$files", "scala.collection.immutable.Map[hydrocul.kametools.VirtualDirectory,java.lang.String]", fileMap);
   }
 
-  def putFile(file: File, fileMap: Map[File, String]): (String, Map[File, String]) = {
+  def putFile(file: File, fileMap: Map[VirtualDirectory, String]): (String, Map[VirtualDirectory, String]) = {
+    putFile(VirtualDirectory.OneFileVirtualDirectory(file, false), fileMap);
+  }
+
+  def putFile(vdir: VirtualDirectory, fileMap: Map[VirtualDirectory, String]): (String, Map[VirtualDirectory, String]) = {
 
     def createRandom(len: Int): String = {
       val ret = new StringBuilder();
@@ -56,16 +60,16 @@ class ObjectBank(dirName: String){
       }
     }
 
-    val ret = {
-      fileMap.get(file) match {
+    val ret: (String, Map[VirtualDirectory, String]) = {
+      fileMap.get(vdir) match {
         case Some(s) => (s, fileMap);
         case None =>
           val s = createName();
-          (s, fileMap + (file -> s));
+          (s, fileMap + (vdir -> s));
       }
     }
 
-    put("$" + ret._1, "java.io.File", file);
+    put("$" + ret._1, "hydrocul.kametools.VirtualDirectory", vdir);
 
     ret;
 

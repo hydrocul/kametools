@@ -40,7 +40,7 @@ object Ls extends App {
       false, true, env);
     val list: Stream[File] = vd.getList;
 
-    def extractDir(file: File, level: Int): Seq[File] = {
+    def extractDir(file: File, level: Int): Seq[File] = { // TODO Stream にしたほうがいい
       if(level == 0){
         Vector(file);
       } else {
