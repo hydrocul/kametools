@@ -4,7 +4,7 @@ import java.io.File;
 
 trait App {
 
-  def main(cmdName: String, args: Array[String], env: App.Env);
+  def main(cmdName: String, args: Array[String], env: Env);
 
   def help(cmdName: String);
 
@@ -12,12 +12,7 @@ trait App {
 
 object App {
 
-  class Env(val objectBank: ObjectBank);
-
-  def compareFileName(name1: String, name2: String): Int = {
-    name1.compareToIgnoreCase(name2);
-  }
-
+/*
   def getArgFiles(args: Seq[String], currentDirIfEmpty: Boolean,
     extractDir: Boolean, reverseOrder: Boolean,
     notExistsOk: Boolean, enableObjectKey: Boolean, env: Env): Seq[File] = {
@@ -75,5 +70,6 @@ object App {
         compareFileName(a.getPath, b.getPath) < 0) }
 
   }
+*/
 
 }
