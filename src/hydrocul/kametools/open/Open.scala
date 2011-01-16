@@ -3,24 +3,29 @@ package hydrocul.kametools.open;
 import java.io.File;
 
 import hydrocul.kametools.App;
+import hydrocul.kametools.Env;
 import hydrocul.kametools.ObjectBank;
+import hydrocul.kametools.VirtualDirectory;
 
 object Open extends App {
 
-  def main(cmdName: String, args: Array[String], env: App.Env){
+  def main(cmdName: String, args: Array[String], env: Env){
 
-    val list: Seq[File] = App.getArgFiles(args, true, false, false,
+    val vd = VirtualDirectory.getArgFiles(args, Some("."),
       false, true, env);
+    val list: Stream[File] = vd.getList;
 
     if(list.size > 3){
       println("ファイルが多すぎです");
     } else {
-      System.getProperty("kt.platform") match {
-        case "Windows" => list.foreach { f => openWindows(f); }
-        case "Cygwin" => list.foreach { f => openCygwin(f); }
-        case "Mac" => list.foreach { f => openMac(f); }
-        case "Gnome" => list.foreach { f => openGnome(f); }
-        case _ => cannotOpen();
+      list.take(3).foreach { f =>
+        System.getProperty("kt.platform") match {
+          case "Windows" => openWindows(f);
+          case "Cygwin" => openCygwin(f);
+          case "Mac" => openMac(f);
+          case "Gnome" => openGnome(f);
+          case _ => cannotOpen();
+        }
       }
     }
 

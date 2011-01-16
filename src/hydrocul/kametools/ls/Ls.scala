@@ -9,11 +9,13 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import hydrocul.kametools.App;
+import hydrocul.kametools.Env;
 import hydrocul.kametools.ObjectBank;
+import hydrocul.kametools.VirtualDirectory;
 
 object Ls extends App {
 
-  def main(cmdName: String, args: Array[String], env: App.Env){
+  def main(cmdName: String, args: Array[String], env: Env){
 
     val options = new Options();
     options.addOption("r", false, "list subdirectories recursively");
@@ -34,8 +36,9 @@ object Ls extends App {
 
     val reverse = cli.hasOption("reverse");
 
-    val list: Seq[File] = App.getArgFiles(cli.getArgs, true, true, reverse,
+    val vd = VirtualDirectory.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
+    val list: Stream[File] = vd.getList;
 
     def extractDir(file: File, level: Int): Seq[File] = {
       if(level == 0){
@@ -47,9 +50,9 @@ object Ls extends App {
         } else {
           file +: l.sortWith((a, b) => (
             if(reverse)
-              App.compareFileName(a.getPath, b.getPath) > 0
+              VirtualDirectory.compareFileName(a.getPath, b.getPath) > 0
             else
-              App.compareFileName(a.getPath, b.getPath) < 0)).
+              VirtualDirectory.compareFileName(a.getPath, b.getPath) < 0)).
             flatMap(f => extractDir(f, level - 1));
         }
       }

@@ -3,11 +3,12 @@ package hydrocul.kametools.print;
 import java.io.File;
 
 import hydrocul.kametools.App;
+import hydrocul.kametools.Env;
 import hydrocul.kametools.ObjectBank;
 
 object Print extends App {
 
-  def main(cmdName: String, args: Array[String], env: App.Env){
+  def main(cmdName: String, args: Array[String], env: Env){
 
     args.foreach { a =>
       env.objectBank.load(a) match {

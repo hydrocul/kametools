@@ -25,7 +25,7 @@ object Main {
     if(args.size == 0){
       printHelp();
     } else {
-      val env = new App.Env(new ObjectBank(getDirName()));
+      val env = new Env(new ObjectBank(getDirName()));
       val cmd = args(0);
       val app: Option[App] = try {
         Some(apps(cmd));

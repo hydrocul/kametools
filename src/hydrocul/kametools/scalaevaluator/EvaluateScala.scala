@@ -8,11 +8,12 @@ import scala.tools.nsc.InterpreterResults;
 import scala.tools.nsc.ResultValueInfo;
 
 import hydrocul.kametools.App;
+import hydrocul.kametools.Env
 import hydrocul.kametools.ObjectBank;
 
 object EvaluateScala extends App {
 
-  def main(cmdName: String, args: Array[String], env: App.Env){
+  def main(cmdName: String, args: Array[String], env: Env){
 
     val source = args.mkString(" ");
 
