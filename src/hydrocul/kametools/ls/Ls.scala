@@ -119,30 +119,27 @@ object Ls extends App {
         }
         true;
       }
-      extractDir(l, depth, reverseOrder, cond, Stream.empty);
+      extractDir(l, depth, reverseOrder, Stream.empty).
+        filter(f => cond(f));
     }
 
     private def extractDir(files: Stream[File], depth: Int, reverseOrder: Boolean,
-      cond: File=>Boolean, next: => Stream[File]): Stream[File] = {
+      next: => Stream[File]): Stream[File] = {
 
       if(files.isEmpty){
         next;
       } else {
         val f = files.head;
         lazy val t: Stream[File] = if(depth == 0){
-          extractDir(files.tail, depth, reverseOrder, cond, next);
+          extractDir(files.tail, depth, reverseOrder, next);
         } else {
           val l: Stream[File] = VirtualDirectory.
             OneFileVirtualDirectory(f, true).getList;
           val l2 = if(reverseOrder) l.reverse else l;
-          extractDir(l2, depth - 1, reverseOrder, cond,
-            extractDir(files.tail, depth, reverseOrder, cond, next));
+          extractDir(l2, depth - 1, reverseOrder,
+            extractDir(files.tail, depth, reverseOrder, next));
         }
-        if(cond(f)){
-          Stream.cons(f, t);
-        } else {
-          t;
-        }
+        Stream.cons(f, t);
       }
     }
 
