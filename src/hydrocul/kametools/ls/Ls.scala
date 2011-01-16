@@ -34,32 +34,8 @@ object Ls extends App {
         return;
     }
 
-    val reverse = cli.hasOption("reverse");
-
-    val vd = VirtualDirectory.getArgFiles(cli.getArgs, Some("./"),
-      false, true, env);
-    val list: Stream[File] = vd.getList;
-
-    def extractDir(file: File, level: Int): Seq[File] = { // TODO Stream にしたほうがいい
-      if(level == 0){
-        Vector(file);
-      } else {
-        val l = file.listFiles;
-        if(l == null){
-          Vector(file);
-        } else {
-          file +: l.sortWith((a, b) => (
-            if(reverse)
-              VirtualDirectory.compareFileName(a.getPath, b.getPath) > 0
-            else
-              VirtualDirectory.compareFileName(a.getPath, b.getPath) < 0)).
-            flatMap(f => extractDir(f, level - 1));
-        }
-      }
-    }
-
-    val list2 = if(cli.hasOption("R")){
-      val depth = try {
+    val depth = if(cli.hasOption("R")){
+      try {
         cli.getOptionValue("R").toInt;
       } catch {
         case e: NumberFormatException =>
@@ -67,20 +43,23 @@ object Ls extends App {
             cli.getOptionValue("R"));
           return;
       }
-      list.flatMap { f =>
-        extractDir(f, depth);
-      }
     } else if(cli.hasOption("r")){
-      list.flatMap { f =>
-        extractDir(f, -1);
-      }
+      -1;
     } else {
-      list;
+      0;
     }
+
+    val reverse = cli.hasOption("reverse");
+
+    val vd = VirtualDirectory.getArgFiles(cli.getArgs, Some("./"),
+      false, true, env);
+    val vd2 = LsVirtualDirectory(vd, depth, reverse);
+
+    val list: Stream[File] = vd2.getList;
 
     var map = env.objectBank.getFiles;
 
-    list2.foreach { f: File =>
+    list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
       println("%s %s".format(s._1, f));
       map = s._2;
@@ -92,6 +71,46 @@ object Ls extends App {
 
   def help(cmdName: String){
     // TODO
+  }
+
+  case class LsVirtualDirectory(vd: VirtualDirectory,
+    depth: Int, reverseOrder: Boolean) extends VirtualDirectory {
+
+    override def getName = vd.getName +
+      (if(depth==0) "" else " recursive (%d)".format(depth));
+
+    override def getList = extractDir();
+
+    override def getChild(path: String) = VirtualDirectory.empty;
+
+    override def getChildren = this;
+
+    private def extractDir(): Stream[File] = {
+      val l = if(reverseOrder) vd.getList.reverse else vd.getList;
+      extractDir(l, depth, reverseOrder, Stream.empty);
+    }
+
+    private def extractDir(files: Stream[File], depth: Int, reverseOrder: Boolean,
+      next: => Stream[File]): Stream[File] = {
+
+      if(files.isEmpty){
+        next;
+      } else {
+        val f = files.head;
+        if(depth == 0){
+          Stream.cons(f, extractDir(files.tail, depth, reverseOrder, next));
+        } else {
+          Stream.cons(f, {
+            val l: Stream[File] = VirtualDirectory.
+              OneFileVirtualDirectory(f, true).getList;
+            val l2 = if(reverseOrder) l.reverse else l;
+            extractDir(l2, depth - 1, reverseOrder,
+              extractDir(files.tail, depth, reverseOrder, next));
+          });
+        }
+      }
+    }
+
   }
 
 }
