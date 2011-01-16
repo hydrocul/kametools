@@ -152,14 +152,15 @@ object VirtualDirectory {
       } else if(i == a.length - 1){
         (a.substring(0, i), None, true);
       } else {
-        (a.substring(0, i), Some(a.substring(i)), false);
+        (a.substring(0, i), Some(a.substring(i + 1)), false);
       }
     }
     val head: String = htl._1;
     val tail: Option[String] = htl._2;
     val list: Boolean = htl._3;
 
-    val file = (new File(head)).getCanonicalFile;
+    val path = if(head.length == 0) "/" else head;
+    val file = (new File(path)).getCanonicalFile;
 
     // 最初の引数の VirtualDirectory を生成
     val firstVD: VirtualDirectory = env.objectBank.load("$" + head) match {
