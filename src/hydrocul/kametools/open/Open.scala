@@ -1,5 +1,6 @@
 package hydrocul.kametools.open;
 
+import java.awt.Desktop;
 import java.io.File;
 
 import hydrocul.kametools.App;
@@ -18,43 +19,12 @@ object Open extends App {
     if(list.size > 3){
       println("ファイルが多すぎです");
     } else {
+      val desktop = Desktop.getDesktop;
       list.take(3).foreach { f =>
-        System.getProperty("kt.platform") match {
-          case "Windows" => openWindows(f);
-          case "Cygwin" => openCygwin(f);
-          case "Mac" => openMac(f);
-          case "Gnome" => openGnome(f);
-          case _ => cannotOpen();
-        }
+        desktop.open(f);
       }
     }
 
-  }
-
-  private def openWindows(f: File){
-    val pb = new ProcessBuilder("cmd.exe", "/C", "start", f.getCanonicalPath);
-    pb.start();
-    println("open " + f.getCanonicalPath);
-  }
-
-  private def openCygwin(f: File){
-    openWindows(f);
-  }
-
-  private def openMac(f: File){
-    val pb = new ProcessBuilder("open", f.getCanonicalPath);
-    pb.start();
-    println("open " + f.getCanonicalPath);
-  }
-
-  private def openGnome(f: File){
-    val pb = new ProcessBuilder("gnome-open", f.getCanonicalPath);
-    pb.start();
-    println("open " + f.getCanonicalPath);
-  }
-
-  private def cannotOpen(){
-    println("このプラットフォームではファイルを開くことができません。");
   }
 
   def help(cmdName: String){
