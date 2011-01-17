@@ -43,7 +43,9 @@ object Main {
   }
 
   def printHelp(){
-    println("kametools now");
+    apps.map(kv => kv._1).foreach { cmdName =>
+      println("kt " + cmdName);
+    }
   }
 
   private def getDirName(): String = {
