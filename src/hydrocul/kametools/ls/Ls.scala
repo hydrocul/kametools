@@ -69,11 +69,16 @@ object Ls extends App {
 
     val vd = VirtualDirectory.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
-    val vd2 = LsVirtualDirectory(vd, depth, reverse, patterns);
+    val vd2 = LsVirtualDirectory.create(vd, depth, reverse, patterns);
 
     val list: Stream[File] = vd2.getList;
 
     var map = env.objectBank.getFiles;
+
+    val s = env.objectBank.putFile(vd2, map);
+    val vd2key = s._1;
+    map = s._2;
+    println("%s[%s]".format(vd2key, vd2));
 
     list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
@@ -140,6 +145,21 @@ object Ls extends App {
             extractDir(files.tail, depth, reverseOrder, next));
         }
         Stream.cons(f, t);
+      }
+    }
+
+  }
+
+  object LsVirtualDirectory {
+
+    def create(vd: VirtualDirectory,
+      depth: Int, reverseOrder: Boolean,
+      pattern: Option[String]): VirtualDirectory = {
+
+      if(depth==0 && !reverseOrder && pattern==None){
+        vd;
+      } else {
+        new LsVirtualDirectory(vd, depth, reverseOrder, pattern);
       }
     }
 
