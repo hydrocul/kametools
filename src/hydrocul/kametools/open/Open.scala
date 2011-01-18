@@ -21,6 +21,7 @@ object Open extends App {
     } else {
       val desktop = Desktop.getDesktop;
       list.take(3).foreach { f =>
+        println("open " + f.getCanonicalPath);
         desktop.open(f);
       }
     }
