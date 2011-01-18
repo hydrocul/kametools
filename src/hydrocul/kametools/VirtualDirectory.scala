@@ -14,7 +14,7 @@ trait VirtualDirectory {
 
   /**
    * 単一のFileの場合は、そのFileが表すディレクトリの中のリストを
-   * 取得する。ディレクトリでない場合は、emptyを返す。
+   * 取得する。ディレクトリでない場合または
    * 単一のFileでない場合は、getListと同じ内容を返す。
    */
   def getChildren: VirtualDirectory = {
@@ -51,7 +51,7 @@ object VirtualDirectory {
       } else {
         val l = file.listFiles;
         if(l==null){
-          Stream.empty;
+          Stream.cons(file, Stream.empty);
         } else {
           (l.sortWith { (a, b) => compareFileName(a.getName, b.getName) < 0 }).
             toStream;
