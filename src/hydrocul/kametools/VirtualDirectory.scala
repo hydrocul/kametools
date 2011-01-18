@@ -2,6 +2,8 @@ package hydrocul.kametools;
 
 import java.io.File;
 
+import java.util.NoSuchElementException;
+
 trait VirtualDirectory {
 
   def getName: String;
@@ -15,7 +17,18 @@ trait VirtualDirectory {
    * 取得する。ディレクトリでない場合は、emptyを返す。
    * 単一のFileでない場合は、getListと同じ内容を返す。
    */
-  def getChildren: VirtualDirectory;
+  def getChildren: VirtualDirectory = {
+    val list = getList;
+    val head = try {
+      list.head;
+    } catch {
+      case e: NoSuchElementException =>
+        return VirtualDirectory.empty;
+    }
+    if(!list.tail.isEmpty)
+      return this;
+    VirtualDirectory.OneFileVirtualDirectory(head, true);
+  }
 
   override def toString = getName;
 
@@ -56,14 +69,6 @@ object VirtualDirectory {
       }
     }
 
-    override def getChildren: VirtualDirectory = {
-      if(list){
-        this;
-      } else {
-        OneFileVirtualDirectory(file, true);
-      }
-    }
-
   }
 
   case class ConcatVirtualDirectory(name: String, head: VirtualDirectory,
@@ -83,8 +88,6 @@ object VirtualDirectory {
     }
 
     override def getChild(path: String) = empty;
-
-    override def getChildren = this;
 
   }
 

@@ -109,8 +109,6 @@ object Ls extends App {
 
     override def getChild(path: String) = VirtualDirectory.empty;
 
-    override def getChildren = this;
-
     private def extractDir(): Stream[File] = {
       val l = if(reverseOrder) vd.getList.reverse else vd.getList;
       def cond(file: File): Boolean = {
