@@ -8,7 +8,13 @@ trait VirtualDirectory {
 
   def getName: String;
 
-  def getList: Stream[File];
+  def isEmpty: Boolean;
+
+  /**
+   * 含まれるファイルリストの1つ目と残りを表す VirtualDirectory を取得する。
+   * ない場合は、NoSuchElementException をスローする。
+   */
+  def getList: (File, VirtualDirectory);
 
   def getChild(path: String): VirtualDirectory;
 
@@ -45,16 +51,18 @@ object VirtualDirectory {
 
     override def getName = file.getPath + (if(list) "/" else "");
 
-    override def getList: Stream[File] = {
+    override def isEmpty = false;
+
+    override def getList: (File, VirtualDirectory) = {
       if(!list){
-        Stream.cons(file, Stream.empty);
+        (file, empty);
       } else {
         val l = file.listFiles;
         if(l==null){
-          Stream.cons(file, Stream.empty);
+          (file, empty);
         } else {
-          (l.sortWith { (a, b) => compareFileName(a.getName, b.getName) < 0 }).
-            toStream;
+          FilesVirtualDirectory.create(l.sortWith {
+            (a, b) => compareFileName(a.getName, b.getName) < 0 }).getList;
         }
       }
     }
@@ -74,26 +82,49 @@ object VirtualDirectory {
   case class ConcatVirtualDirectory(name: String, head: VirtualDirectory,
     tail: Function0[VirtualDirectory]) extends VirtualDirectory {
 
+    @transient lazy val tail2 = tail();
+
     override def getName = name;
 
-    override def getList: Stream[File] = {
-      val l = head.getList;
-      Stream.cons(l.head, {
-        if(!l.tail.isEmpty){
-          l.tail;
-        } else {
-          tail.apply().getList;
-        }
-      });
+    override def isEmpty: Boolean = {
+      if(!head.isEmpty){
+        false;
+      } else {
+        tail2.isEmpty;
+      }
+    }
+
+    override def getList: (File, VirtualDirectory) = {
+      if(head.isEmpty){
+        tail2.getList;
+      } else {
+        val r = head.getList;
+        (r._1, ConcatVirtualDirectory.create(name, r._2, tail2));
+      }
     }
 
     override def getChild(path: String) = empty;
 
   }
 
+  object ConcatVirtualDirectory {
+
+    def create(name: String, head: VirtualDirectory,
+      tail: Function0[VirtualDirectory]): VirtualDirectory = {
+      if(head.isEmpty){
+        tail();
+      } else {
+        ConcatVirtualDirectory(name, head, tail);
+      }
+    }
+
+  }
+
   case class ReverseVirtualDirectory(src: VirtualDirectory) extends VirtualDirectory {
 
     override def getName = src.getName;
+
+    override def isEmpty = src.isEmpty;
 
     override def getList: Stream[File] = src.getList.reverse;
 
