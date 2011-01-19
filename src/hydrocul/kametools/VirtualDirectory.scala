@@ -36,6 +36,23 @@ trait VirtualDirectory {
     VirtualDirectory.OneFileVirtualDirectory(head, true);
   }
 
+  private val src = this;
+
+  def getReverse: VirtualDirectory = new VirtualDirectory(){
+
+    override def getName = src.getName;
+
+    override def isEmpty = src.isEmpty;
+
+    override def getList: (File, VirtualDirectory) = {
+      val list = src.getList.toList;
+      ListVirtualDirectory(src.getName, list).getReverse.getList;
+    }
+
+    override def getChild(path: String) = src.getChild(path);
+
+  }
+
   override def toString = getName;
 
 }
@@ -43,7 +60,7 @@ trait VirtualDirectory {
 object VirtualDirectory {
 
   case class OneFileVirtualDirectory(file: File,
-    list: Boolean) extends VirtualDirectory {
+    list: Boolean, reverse: Boolean) extends VirtualDirectory {
 
     if(file.getCanonicalFile!=file){
       throw new IllegalArgumentException(file.getPath);
@@ -62,7 +79,8 @@ object VirtualDirectory {
           (file, empty);
         } else {
           FilesVirtualDirectory.create(l.sortWith {
-            (a, b) => compareFileName(a.getName, b.getName) < 0 }).getList;
+            (a, b) => compareFileName(a.getName, b.getName) < 0 },
+            reverse).getList;
         }
       }
     }
@@ -76,6 +94,9 @@ object VirtualDirectory {
           path)).getCanonicalFile, false);
       }
     }
+
+    override def getReverse: VirtualDirectory = OneFileVirtualDirectory(file,
+      list, !reverse);
 
   }
 
@@ -120,17 +141,16 @@ object VirtualDirectory {
 
   }
 
-  case class ReverseVirtualDirectory(src: VirtualDirectory) extends VirtualDirectory {
+  case class ListVirtualDirectory(name: String,
+    files: List[File]) extends VirtualDirectory {
 
-    override def getName = src.getName;
+    override def getName = name;
 
-    override def isEmpty = src.isEmpty;
+    override def isEmpty = files.isEmpty;
 
-    override def getList: Stream[File] = src.getList.reverse;
+    override def getList = (files.head, ListVirtualDirectory(name, files.tail));
 
-    override def getChild(path: String) = src.getChild(path);
-
-    override def getChildren = ReverseVirtualDirectory(src.getChildren);
+    override def getReverse = ListVirtualDirectory(name, files.reverse);
 
   }
 
@@ -143,6 +163,8 @@ object VirtualDirectory {
     override def getChild(path: String) = this;
 
     override def getChildren = this;
+
+    override def getReverse = this;
 
   }
 
