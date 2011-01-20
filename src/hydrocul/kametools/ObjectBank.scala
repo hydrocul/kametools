@@ -38,7 +38,7 @@ class ObjectBank(dirName: String){
   }
 
   def putFile(file: File, fileMap: Map[VirtualDirectory, String]): (String, Map[VirtualDirectory, String]) = {
-    putFile(VirtualDirectory.OneFileVirtualDirectory(file, false), fileMap);
+    putFile(VirtualDirectory.OneFileVirtualDirectory(file, false, false), fileMap);
   }
 
   def putFile(vdir: VirtualDirectory, fileMap: Map[VirtualDirectory, String]): (String, Map[VirtualDirectory, String]) = {

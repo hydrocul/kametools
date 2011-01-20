@@ -24,16 +24,16 @@ trait VirtualDirectory {
    * 単一のFileでない場合は、getListと同じ内容を返す。
    */
   def getChildren: VirtualDirectory = {
-    val list = getList;
-    val head = try {
-      list.head;
+    val list = try {
+      getList;
     } catch {
       case e: NoSuchElementException =>
         return VirtualDirectory.empty;
     }
-    if(!list.tail.isEmpty)
+    val head = list._1;
+    if(!list._2.isEmpty)
       return this;
-    VirtualDirectory.OneFileVirtualDirectory(head, true);
+    VirtualDirectory.OneFileVirtualDirectory(head, true, false);
   }
 
   private val src = this;
@@ -46,7 +46,7 @@ trait VirtualDirectory {
 
     override def getList: (File, VirtualDirectory) = {
       val list = src.getList.toList;
-      ListVirtualDirectory(src.getName, list).getReverse.getList;
+      VirtualDirectory.ListVirtualDirectory(src.getName, list).getReverse.getList;
     }
 
     override def getChild(path: String) = src.getChild(path);
@@ -88,10 +88,10 @@ object VirtualDirectory {
     override def getChild(path: String): VirtualDirectory = {
       if(path.endsWith("/")){
         OneFileVirtualDirectory((new File(file,
-          path.substring(0, path.length - 1))).getCanonicalFile, true);
+          path.substring(0, path.length - 1))).getCanonicalFile, true, false);
       } else {
         OneFileVirtualDirectory((new File(file,
-          path)).getCanonicalFile, false);
+          path)).getCanonicalFile, false, false);
       }
     }
 
@@ -120,7 +120,7 @@ object VirtualDirectory {
         tail2.getList;
       } else {
         val r = head.getList;
-        (r._1, ConcatVirtualDirectory.create(name, r._2, tail2));
+        (r._1, ConcatVirtualDirectory.create(name, r._2, ()=>tail2));
       }
     }
 
@@ -142,7 +142,7 @@ object VirtualDirectory {
   }
 
   case class ListVirtualDirectory(name: String,
-    files: List[File]) extends VirtualDirectory {
+    files: Stream[File]) extends VirtualDirectory {
 
     override def getName = name;
 
@@ -158,7 +158,9 @@ object VirtualDirectory {
 
     override def getName = "empty";
 
-    override def getList = Stream.empty;
+    override def isEmpty = true;
+
+    override def getList = { throw new NoSuchElementException(); }
 
     override def getChild(path: String) = this;
 
@@ -225,9 +227,9 @@ object VirtualDirectory {
           empty;
         } else {
           (list, tail) match {
-            case (true, _) => OneFileVirtualDirectory(file, true);
-            case (false, None) => OneFileVirtualDirectory(file, false);
-            case (false, Some(tail)) => OneFileVirtualDirectory(file, false).
+            case (true, _) => OneFileVirtualDirectory(file, true, false);
+            case (false, None) => OneFileVirtualDirectory(file, false, false);
+            case (false, Some(tail)) => OneFileVirtualDirectory(file, false, false).
               getChild(tail);
           }
         }
@@ -236,7 +238,7 @@ object VirtualDirectory {
           throw new ParseException("duplicated: " + head);
         } else {
           val d: VirtualDirectory = f match {
-            case f: File => OneFileVirtualDirectory(f.getCanonicalFile, false);
+            case f: File => OneFileVirtualDirectory(f.getCanonicalFile, false, false);
             case d: VirtualDirectory => d;
           }
           (list, tail) match {

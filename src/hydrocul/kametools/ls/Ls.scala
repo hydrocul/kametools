@@ -137,9 +137,8 @@ object Ls extends App {
           extractDir(files.tail, depth, reverseOrder, next);
         } else {
           val l: Stream[File] = VirtualDirectory.
-            OneFileVirtualDirectory(f, true).getList;
-          val l2 = if(reverseOrder) l.reverse else l;
-          extractDir(l2, depth - 1, reverseOrder,
+            OneFileVirtualDirectory(f, true, reverseOrder).getList;
+          extractDir(l, depth - 1, reverseOrder,
             extractDir(files.tail, depth, reverseOrder, next));
         }
         Stream.cons(f, t);
