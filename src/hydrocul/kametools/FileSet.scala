@@ -136,7 +136,16 @@ object FileSet {
       }
     }
 
-    override def isEmpty = files.isEmpty;
+    if(files==null){
+      throw new NullPointerException();
+    }
+
+    override def isEmpty = {
+      if(files==null){
+        throw new NullPointerException();
+      }
+      files.isEmpty;
+    }
 
     override def head = files.head;
 
@@ -201,7 +210,7 @@ object FileSet {
   case class ConcatFileSet(override val name: String, headSet: FileSet,
     tailSet: Function0[FileSet]) extends FileSet {
 
-    @transient lazy val tail2 = tailSet();
+    @transient private lazy val tail2 = tailSet();
 
     override def isEmpty = {
       if(!headSet.isEmpty){
