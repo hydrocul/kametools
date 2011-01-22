@@ -229,6 +229,86 @@ object FileSet {
 
   }
 
+  class ParseException(msg: String) extends Exception(msg);
+
+  def getArgFiles(args: Seq[String], ifEmpty: Option[String],
+    notExistsOk: Boolean, enableObjectKey: Boolean,
+    env: Env): FileSet = {
+
+    if(args.size == 0){
+      // 引数がない場合
+      ifEmpty match {
+        case None => empty;
+        case Some(p) => getArgFiles(Array(p), None,
+          notExistsOk, enableObjectKey, env);
+      }
+    } else {
+      // 引数がある場合
+      getArgFilesSub(args, notExistsOk, enableObjectKey, env);
+
+    }
+  }
+
+  private def getArgFilesSub(args: Seq[String],
+    notExistsOk: Boolean, enableObjectKey: Boolean,
+    env: Env): FileSet = {
+
+    val a = args.head;
+    val htl = {
+      val i = a.indexOf('/');
+      if(i < 0){
+        (a, None, false);
+      } else if(i == a.length - 1){
+        (a.substring(0, i), None, true);
+      } else {
+        (a.substring(0, i), Some(a.substring(i + 1)), false);
+      }
+    }
+    val head: String = htl._1;
+    val tail: Option[String] = htl._2;
+    val list: Boolean = htl._3;
+
+    val path = if(head.length == 0) "/" else head;
+    val file = (new File(path)).getCanonicalFile;
+
+    // 最初の引数の FileSet を生成
+    val firstVD: FileSet = env.objectBank.load("$" + head) match {
+      case None =>
+        if(!notExistsOk && !file.exists){
+          empty;
+        } else {
+          (list, tail) match {
+            case (true, _) => DirFileSet(file, false);
+            case (false, None) => OneFileSet(file);
+            case (false, Some(tail)) => OneFileSet(file).getChild(tail);
+          }
+        }
+      case Some(ObjectBank.Field(_, f)) =>
+        if(file.exists){
+          throw new ParseException("duplicated: " + head);
+        } else {
+          val d: FileSet = f match {
+            case f: File => OneFileSet(f.getCanonicalFile);
+            case d: FileSet => d;
+          }
+          (list, tail) match {
+            case (true, _) => d.getChildren(false);
+            case (false, None) => d;
+            case (false, Some(tail)) => d.getChild(tail);
+          }
+        }
+    }
+
+    if(args.size == 1){
+      firstVD;
+    } else {
+      ConcatFileSet(args.mkString(" "), firstVD,
+        () => getArgFilesSub(args.tail,
+        notExistsOk, enableObjectKey, env));
+    }
+
+  }
+
   def compareFileName(name1: String, name2: String): Int = {
     name1.compareToIgnoreCase(name2);
   }
