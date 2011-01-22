@@ -6,15 +6,14 @@ import java.io.File;
 import hydrocul.kametools.App;
 import hydrocul.kametools.Env;
 import hydrocul.kametools.ObjectBank;
-import hydrocul.kametools.VirtualDirectory;
+import hydrocul.kametools.FileSet;
 
 object Open extends App {
 
   def main(cmdName: String, args: Array[String], env: Env){
 
-    val vd = VirtualDirectory.getArgFiles(args, Some("."),
-      false, true, env);
-    val list: Stream[File] = vd.getList;
+    val vd = FileSet.getArgFiles(args, Some("."), false, true, env);
+    val list: Stream[File] = vd.toStream;
 
     if(list.size > 3){
       println("ファイルが多すぎです");
