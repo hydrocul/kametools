@@ -36,6 +36,12 @@ object Ls extends App {
       op;
     } );
     options.addOption("t", false, "");
+    options.addOption( {
+      val op = new CliOption("T", "time", true,
+        "");
+      op.setArgName("format");
+      op;
+    } );
 
     val parser = new PosixParser();
     val cli = try {
@@ -69,7 +75,12 @@ object Ls extends App {
       None;
     }
 
-    val printTimeFlag: Boolean = cli.hasOption("t");
+    val printTimeFlag: Boolean = cli.hasOption("t") || cli.hasOption("T");
+    val printTimeFormat: Option[String] = if(cli.hasOption("T")){
+      Some(cli.getOptionValue("T"));
+    } else {
+      None;
+    }
 
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
@@ -86,7 +97,7 @@ object Ls extends App {
 
     list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
-      printFileInfo(s._1, f, printTimeFlag);
+      printFileInfo(s._1, f, printTimeFlag, printTimeFormat)
       map = s._2;
     }
 
@@ -98,10 +109,15 @@ object Ls extends App {
     // TODO
   }
 
-  private def printFileInfo(key: String, file: File, printTimeFlag: Boolean){
+  private def printFileInfo(key: String, file: File, printTimeFlag: Boolean,
+    printTimeFormat: Option[String]){
     if(printTimeFlag){
       val time = new java.util.Date(file.lastModified);
-      println("%1$tY-%1$tm-%1$td-%1$tH-%1$tM-%1$tS %2$s %3$s".format(time, key, file));
+      val f = printTimeFormat match {
+        case Some(f) => f.replaceAll("%", "%1\\$t");
+        case None => "%1$tY-%1$tm-%1$td-%1$tH-%1$tM-%1$tS";
+      }
+      println((f + " %2$s %3$s").format(time, key, file));
     } else {
       println("%s %s".format(key, file));
     }
