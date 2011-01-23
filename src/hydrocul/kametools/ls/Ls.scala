@@ -93,7 +93,9 @@ object Ls extends App {
     val s = env.objectBank.putFile(vd2, map);
     val vd2key = s._1;
     map = s._2;
-    println("%s[%s]".format(vd2key, vd2));
+    if(!vd2.isSingleFile){
+      println("%s[%s]".format(vd2key, vd2));
+    }
 
     list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
