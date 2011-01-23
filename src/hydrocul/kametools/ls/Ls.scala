@@ -82,7 +82,7 @@ object Ls extends App {
 
     list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
-      println("%s %s".format(s._1, f));
+      printFileInfo(s._1, f);
       map = s._2;
     }
 
@@ -92,6 +92,10 @@ object Ls extends App {
 
   def help(cmdName: String){
     // TODO
+  }
+
+  private def printFileInfo(key: String, file: File){
+    println("%s %s".format(key, file));
   }
 
   case class LsFileSet(vd: FileSet,

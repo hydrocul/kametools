@@ -5,8 +5,8 @@ import java.io.File;
 
 import hydrocul.kametools.App;
 import hydrocul.kametools.Env;
-import hydrocul.kametools.ObjectBank;
 import hydrocul.kametools.FileSet;
+import hydrocul.kametools.ObjectBank;
 
 object Open extends App {
 
