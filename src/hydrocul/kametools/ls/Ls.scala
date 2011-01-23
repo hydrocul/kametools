@@ -13,8 +13,8 @@ import org.apache.commons.cli.PosixParser;
 
 import hydrocul.kametools.App;
 import hydrocul.kametools.Env;
+import hydrocul.kametools.FileSet;
 import hydrocul.kametools.ObjectBank;
-import hydrocul.kametools.VirtualDirectory;
 
 object Ls extends App {
 
@@ -67,11 +67,11 @@ object Ls extends App {
       None;
     }
 
-    val vd = VirtualDirectory.getArgFiles(cli.getArgs, Some("./"),
+    val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
-    val vd2 = LsVirtualDirectory.create(vd, depth, reverse, patterns);
+    val vd2 = LsFileSet.create(vd, depth, reverse, patterns);
 
-    val list: Stream[File] = vd2.getList;
+    val list: Stream[File] = vd2.toStream;
 
     var map = env.objectBank.getFiles;
 
@@ -94,23 +94,27 @@ object Ls extends App {
     // TODO
   }
 
-  case class LsVirtualDirectory(vd: VirtualDirectory,
+  case class LsFileSet(vd: FileSet,
     depth: Int, reverseOrder: Boolean,
-    pattern: Option[String]) extends VirtualDirectory {
+    pattern: Option[String]) extends FileSet {
 
-    override def getName = vd.getName +
+    override lazy val name = vd.name +
       (if(depth==0) "" else " recursive (%d)".format(depth))
       (pattern match {
         case None => "";
         case Some(p) => " pattern: %s".format(p);
       } );
 
-    override def getList = extractDir();
+    @transient private lazy val stream = extractDir();
 
-    override def getChild(path: String) = VirtualDirectory.empty;
+    override def isEmpty = stream.isEmpty;
+
+    override def head = stream.head;
+
+    override def tail = FileSet.StreamFileSet.create(name, stream.tail);
 
     private def extractDir(): Stream[File] = {
-      val l = if(reverseOrder) vd.getList.reverse else vd.getList;
+      val l = if(reverseOrder) vd.toStream.reverse else vd.toStream;
       def cond(file: File): Boolean = {
         pattern match {
           case None => ;
@@ -136,10 +140,9 @@ object Ls extends App {
         lazy val t: Stream[File] = if(depth == 0){
           extractDir(files.tail, depth, reverseOrder, next);
         } else {
-          val l: Stream[File] = VirtualDirectory.
-            OneFileVirtualDirectory(f, true).getList;
-          val l2 = if(reverseOrder) l.reverse else l;
-          extractDir(l2, depth - 1, reverseOrder,
+          val l: Stream[File] = FileSet.
+            DirFileSet(f, reverseOrder).toStream;
+          extractDir(l, depth - 1, reverseOrder,
             extractDir(files.tail, depth, reverseOrder, next));
         }
         Stream.cons(f, t);
@@ -148,16 +151,16 @@ object Ls extends App {
 
   }
 
-  object LsVirtualDirectory {
+  object LsFileSet {
 
-    def create(vd: VirtualDirectory,
+    def create(vd: FileSet,
       depth: Int, reverseOrder: Boolean,
-      pattern: Option[String]): VirtualDirectory = {
+      pattern: Option[String]): FileSet = {
 
       if(depth==0 && !reverseOrder && pattern==None){
         vd;
       } else {
-        new LsVirtualDirectory(vd, depth, reverseOrder, pattern);
+        new LsFileSet(vd, depth, reverseOrder, pattern);
       }
     }
 
