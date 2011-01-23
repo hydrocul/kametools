@@ -43,6 +43,27 @@ class ObjectBank(dirName: String){
 
   def putFile(fileSet: FileSet, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
 
+    def createRandom0(): String = {
+      val first1 = "bcdfghjklmnpqrstvwxyz";
+      val first2 = "aeiou";
+      val first = first1.length * first2.length * first1.length;
+      val second = first2.length * first1.length;
+      val sum = first + second;
+      val ret = new StringBuilder();
+      val d = (math.random * sum);
+      if(d < first){
+        ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
+        ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
+        ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
+      } else {
+        ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
+        val c = first1.charAt((math.random * first1.length).asInstanceOf[Int]);
+        ret.append(c);
+        ret.append(c);
+      }
+      ret.toString;
+    }
+
     def createRandom(len: Int): String = {
       val ret = new StringBuilder();
       (1 to len).foreach { _ =>
@@ -52,11 +73,17 @@ class ObjectBank(dirName: String){
       ret.toString;
     }
 
-    def createName(): String = {
-      val r = createRandom(3);
+    def createName(level: Int): String = {
+      val r = if(level < 2){
+        createRandom0();
+      } else if(level < 6){
+        createRandom(3);
+      } else {
+        createRandom(4);
+      }
       load("$" + r) match {
         case None => r;
-        case Some(_) => createName();
+        case Some(_) => createName(level + 1);
       }
     }
 
@@ -64,7 +91,7 @@ class ObjectBank(dirName: String){
       fileMap.get(fileSet) match {
         case Some(s) => (s, fileMap);
         case None =>
-          val s = createName();
+          val s = createName(0);
           (s, fileMap + (fileSet -> s));
       }
     }
