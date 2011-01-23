@@ -35,6 +35,8 @@ object Ls extends App {
       op.setArgName("pattern");
       op;
     } );
+    options.addOption("t", false, "");
+
     val parser = new PosixParser();
     val cli = try {
       parser.parse(options, args);
@@ -67,6 +69,8 @@ object Ls extends App {
       None;
     }
 
+    val printTimeFlag: Boolean = cli.hasOption("t");
+
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
     val vd2 = LsFileSet.create(vd, depth, reverse, patterns);
@@ -82,7 +86,7 @@ object Ls extends App {
 
     list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
-      printFileInfo(s._1, f);
+      printFileInfo(s._1, f, printTimeFlag);
       map = s._2;
     }
 
@@ -94,8 +98,13 @@ object Ls extends App {
     // TODO
   }
 
-  private def printFileInfo(key: String, file: File){
-    println("%s %s".format(key, file));
+  private def printFileInfo(key: String, file: File, printTimeFlag: Boolean){
+    if(printTimeFlag){
+      val time = new java.util.Date(file.lastModified);
+      println("%1$tY-%1$tm-%1$td-%1$tH-%1$tM-%1$tS %2$s %3$s".format(time, key, file));
+    } else {
+      println("%s %s".format(key, file));
+    }
   }
 
   case class LsFileSet(vd: FileSet,
