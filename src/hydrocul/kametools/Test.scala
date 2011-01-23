@@ -1,76 +1,100 @@
 package hydrocul.kametools;
 
-import java.io.File;
-
 object Test {
 
   def main(args: Array[String]){
 
-    val ob = new ObjectBank(getDirName());
+    //----------------
+    // ClassA - with @transient
+    //----------------
 
-    val vd = FileSet.DirFileSet(new File("/home/kenken/projects"), false);
-    vd.head;
-    ob.put("test", "test", vd);
+    val objA1 = ClassA("world");
 
-    println(ob.load("test").get.get);
+    println(objA1);
+    // This works as expected as follows:
+    //   "Good morning."
+    //   "Hello, world"
 
-    
+    saveObject("testA.dat", objA1);
 
-  }
+    val objA2 = loadObject("testA.dat").asInstanceOf[ClassA];
 
-  case class DirFileSet(file: File, reverse: Boolean) extends FileSet {
+    println(objA2);
+    // I expect this will work as follows:
+    //   "Good morning."
+    //   "Hello, world"
+    // but actually it works as follows:
+    //   "null"
 
-    override def name = file.getPath + "/";
 
-    @transient private lazy val files: List[File] = {
-      val l = file.listFiles;
-      if(l==null){
-        Nil;
-      } else {
-        (if(reverse){
-          l.sortWith { (a, b) =>
-            FileSet.compareFileName(a.getName, b.getName) > 0 }
-        } else {
-          l.sortWith { (a, b) =>
-            FileSet.compareFileName(a.getName, b.getName) < 0 }
-        }).toList;
-      }
-    }
 
-    if(files==null){
-      throw new NullPointerException();
-    }
+    //----------------
+    // ClassB - without @transient
+    // this works as expected
+    //----------------
 
-    override def isEmpty = {
-      if(files==null){
-        throw new NullPointerException();
-      }
-      files.isEmpty;
-    }
+    val objB1 = ClassB("world");
 
-    override def head = files.head;
+    println(objB1);
+    // This works as expected as follows:
+    //   "Good morning."
+    //   "Hello, world"
 
-    override def tail = FileSet.ListFileSet.create(name, files.tail);
+    saveObject("testB.dat", objB1);
 
-    override def getChild(path: String): FileSet = {
-      FileSet.OneFileSet(file).getChild(path);
-    }
+    val objB2 = loadObject("testB.dat").asInstanceOf[ClassB];
 
-    override def getChildren(reverse: Boolean): FileSet = this;
+    println(objB2);
+    // This works as expected as follows:
+    //   "Hello, world"
 
   }
 
   case class ClassA(name: String){
 
-    @transient private lazy val msg = "Hello, " + name;
+    @transient private lazy val msg = {
+      println("Good morning.");
+      "Hello, " + name;
+    }
 
     override def toString = msg;
 
   }
 
-  private def getDirName(): String = {
-    import java.io.File;
-    System.getProperty("user.home") + File.separator + ".kametools";
+  case class ClassB(name: String){
+
+    private lazy val msg = {
+      println("Good morning.");
+      "Hello, " + name;
+    }
+
+    override def toString = msg;
+
+  }
+
+  import java.io.FileInputStream;
+  import java.io.FileOutputStream;
+  import java.io.ObjectInputStream;
+  import java.io.ObjectOutputStream;
+
+  def saveObject(fname: String, obj: AnyRef){
+    val fop = new FileOutputStream(fname);
+    val oop = new ObjectOutputStream(fop);
+    try {
+      oop.writeObject(obj);
+    } finally {
+      oop.close();
+    }
+  }
+
+  def loadObject(fname: String): AnyRef = {
+    val fip = new FileInputStream(fname);
+    val oip = new ObjectInputStream(fip);
+    try {
+      oip.readObject();
+    } finally {
+      oip.close();
+    }
   }
 
 }

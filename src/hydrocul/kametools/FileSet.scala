@@ -121,7 +121,18 @@ object FileSet {
 
     override def name = file.getPath + "/";
 
-    @transient private lazy val files: List[File] = {
+    @transient private var _files: List[File] = null;
+    private def files: List[File] = {
+      if(_files==null){
+        synchronized {
+          if(_files==null){
+            _files = $files;
+          }
+        }
+      }
+      _files;
+    }
+    private def $files: List[File] = {
       val l = file.listFiles;
       if(l==null){
         Nil;
@@ -210,7 +221,18 @@ object FileSet {
   case class ConcatFileSet(override val name: String, headSet: FileSet,
     tailSet: Function0[FileSet]) extends FileSet {
 
-    @transient private lazy val tail2 = tailSet();
+    @transient private var _tail2: FileSet = null;
+    private def tail2: FileSet = {
+      if(_tail2==null){
+        synchronized {
+          if(_tail2==null){
+            _tail2 = $tail2;
+          }
+        }
+      }
+      _tail2;
+    }
+    private def $tail2 = tailSet();
 
     override def isEmpty = {
       if(!headSet.isEmpty){
