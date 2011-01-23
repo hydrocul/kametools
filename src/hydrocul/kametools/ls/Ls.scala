@@ -35,9 +35,14 @@ object Ls extends App {
       op.setArgName("pattern");
       op;
     } );
-    options.addOption("t", false, "");
     options.addOption( {
       val op = new CliOption("T", "time", true,
+        "");
+      op.setArgName("format");
+      op;
+    } );
+    options.addOption( {
+      val op = new CliOption("f", "format", true,
         "");
       op.setArgName("format");
       op;
@@ -75,9 +80,14 @@ object Ls extends App {
       None;
     }
 
-    val printTimeFlag: Boolean = cli.hasOption("t") || cli.hasOption("T");
     val printTimeFormat: Option[String] = if(cli.hasOption("T")){
       Some(cli.getOptionValue("T"));
+    } else {
+      None;
+    }
+
+    val printFormat: Option[String] = if(cli.hasOption("f")){
+      Some(cli.getOptionValue("f"));
     } else {
       None;
     }
@@ -99,7 +109,7 @@ object Ls extends App {
 
     list.foreach { f: File =>
       val s = env.objectBank.putFile(f, map);
-      printFileInfo(s._1, f, printTimeFlag, printTimeFormat)
+      printFileInfo(s._1, f, printTimeFormat, printFormat)
       map = s._2;
     }
 
@@ -111,18 +121,19 @@ object Ls extends App {
     // TODO
   }
 
-  private def printFileInfo(key: String, file: File, printTimeFlag: Boolean,
-    printTimeFormat: Option[String]){
-    if(printTimeFlag){
-      val time = new java.util.Date(file.lastModified);
-      val f = printTimeFormat match {
-        case Some(f) => f.replaceAll("%", "%1\\$t");
-        case None => "%1$tY-%1$tm-%1$td-%1$tH-%1$tM-%1$tS";
-      }
-      println((f + " %2$s %3$s").format(time, key, file));
-    } else {
-      println("%s %s".format(key, file));
+  private def printFileInfo(key: String, file: File,
+    printTimeFormat: Option[String], printFormat: Option[String]){
+    val time = new java.util.Date(file.lastModified);
+    val tf = printTimeFormat match {
+      case Some(f) => f.replaceAll("%", "%1\\$t");
+      case None => "%1$tY-%1$tm-%1$td-%1$tH-%1$tM-%1$tS";
     }
+    val t = tf.format(time);
+    val f = printFormat match {
+      case Some(f) => f;
+      case None => "%1$s %2$s %3$s";
+    }
+    println(f.format(t, key, file));
   }
 
   case class LsFileSet(vd: FileSet,
