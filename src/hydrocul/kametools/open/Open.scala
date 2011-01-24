@@ -15,7 +15,7 @@ object Open extends App {
     val vd = FileSet.getArgFiles(args, Some("."), false, true, env);
     val list: Stream[File] = vd.toStream;
 
-    if(list.size > 3){
+    if(!vd.isSingleFile){
       println("ファイルが多すぎです");
     } else {
       val desktop = Desktop.getDesktop;

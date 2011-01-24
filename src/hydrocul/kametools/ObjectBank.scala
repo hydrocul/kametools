@@ -30,11 +30,11 @@ class ObjectBank(dirName: String){
   }
 
   def getFiles: Map[FileSet, String] = {
-    getOrElse[Map[FileSet, String]]("$files", Map());
+    getOrElse[Map[FileSet, String]](".files", Map());
   }
 
   def putFiles(fileMap: Map[FileSet, String]){
-    put("$files", "scala.collection.immutable.Map[hydrocul.kametools.FileSet,java.lang.String]", fileMap);
+    put(".files", "scala.collection.immutable.Map[hydrocul.kametools.FileSet,java.lang.String]", fileMap);
   }
 
   def putFile(file: File, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
@@ -81,7 +81,7 @@ class ObjectBank(dirName: String){
       } else {
         createRandom(4);
       }
-      load("$" + r) match {
+      load(r) match {
         case None => r;
         case Some(_) => createName(level + 1);
       }
@@ -96,7 +96,7 @@ class ObjectBank(dirName: String){
       }
     }
 
-    put("$" + ret._1, "hydrocul.kametools.FileSet", fileSet);
+    put("." + ret._1, "hydrocul.kametools.FileSet", fileSet);
 
     ret;
 
@@ -135,6 +135,8 @@ class ObjectBank(dirName: String){
           Some(loadObject(fname));
         } else if((new File(fname + ".groovy")).exists){
           Some(loadGroovyObject(fname));
+        } else if(!name.startsWith(".")){
+          load("." + name);
         } else {
           None;
         }

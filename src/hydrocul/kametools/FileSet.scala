@@ -303,7 +303,7 @@ object FileSet {
     val file = (new File(path)).getCanonicalFile;
 
     // 最初の引数の FileSet を生成
-    val firstVD: FileSet = env.objectBank.load("$" + head) match {
+    val firstVD: FileSet = env.objectBank.load(head) match {
       case None =>
         if(!notExistsOk && !file.exists){
           empty;
