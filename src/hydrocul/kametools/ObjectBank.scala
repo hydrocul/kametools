@@ -96,9 +96,21 @@ class ObjectBank(dirName: String){
       }
     }
 
-    put("." + ret._1, "hydrocul.kametools.FileSet", fileSet);
+    putFile("." + ret._1, fileSet, fileMap);
 
-    ret;
+  }
+
+  def putFile(name: String, fileSet: FileSet,
+    fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
+
+    val name2 = (if(name.startsWith("."))
+      name.substring(1) else name);
+
+    val newFileMap = fileMap + (fileSet -> name2);
+
+    put(name, "hydrocul.kametools.FileSet", fileSet);
+
+    (name2, newFileMap);
 
   }
 

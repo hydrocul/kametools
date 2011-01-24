@@ -47,6 +47,12 @@ object Ls extends App {
       op.setArgName("format");
       op;
     } );
+    options.addOption( {
+      val op = new CliOption("l", "label", true,
+        "");
+      op.setArgName("label");
+      op;
+    } );
 
     val parser = new PosixParser();
     val cli = try {
@@ -92,6 +98,12 @@ object Ls extends App {
       None;
     }
 
+    val label: Option[String] = if(cli.hasOption("l")){
+      Some(cli.getOptionValue("l"));
+    } else {
+      None;
+    }
+
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
       false, true, env);
     val vd2 = LsFileSet.create(vd, depth, reverse, patterns);
@@ -100,11 +112,14 @@ object Ls extends App {
 
     var map = env.objectBank.getFiles;
 
-    val s = env.objectBank.putFile(vd2, map);
+    val s = label match {
+      case Some(l) => env.objectBank.putFile(l, vd2, map);
+      case None => env.objectBank.putFile(vd2, map);
+    }
     val vd2key = s._1;
     map = s._2;
     if(!vd2.isSingleFile){
-      println("%s[%s]".format(vd2key, vd2));
+      println("%s [%s]".format(vd2key, vd2));
     }
 
     list.foreach { f: File =>
