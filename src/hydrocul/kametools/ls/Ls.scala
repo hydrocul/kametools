@@ -162,7 +162,18 @@ object Ls extends App {
         case Some(p) => " pattern: %s".format(p);
       } );
 
-    @transient private lazy val stream = extractDir();
+    @transient private var _stream: Stream[File] = null;
+    private def stream: Stream[File] = {
+      if(_stream==null){
+        synchronized {
+          if(_stream==null){
+            _stream = $stream;
+          }
+        }
+      }
+      _stream;
+    }
+    private def $stream = extractDir();
 
     override def isEmpty = stream.isEmpty;
 
