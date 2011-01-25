@@ -10,9 +10,9 @@ import hydrocul.kametools.ObjectBank;
 
 object Open extends App {
 
-  def main(cmdName: String, args: Array[String], env: Env){
+  def main(cmdName: String, args: Array[String]){
 
-    val vd = FileSet.getArgFiles(args, Some("."), false, true, env);
+    val vd = FileSet.getArgFiles(args, Some("."), false, true);
     val list: Stream[File] = vd.toStream;
 
     if(!vd.isSingleFile){

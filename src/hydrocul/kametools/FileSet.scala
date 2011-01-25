@@ -263,26 +263,24 @@ object FileSet {
   class ParseException(msg: String) extends Exception(msg);
 
   def getArgFiles(args: Seq[String], ifEmpty: Option[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean,
-    env: Env): FileSet = {
+    notExistsOk: Boolean, enableObjectKey: Boolean): FileSet = {
 
     if(args.size == 0){
       // 引数がない場合
       ifEmpty match {
         case None => empty;
         case Some(p) => getArgFiles(Array(p), None,
-          notExistsOk, enableObjectKey, env);
+          notExistsOk, enableObjectKey);
       }
     } else {
       // 引数がある場合
-      getArgFilesSub(args, notExistsOk, enableObjectKey, env);
+      getArgFilesSub(args, notExistsOk, enableObjectKey);
 
     }
   }
 
   private def getArgFilesSub(args: Seq[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean,
-    env: Env): FileSet = {
+    notExistsOk: Boolean, enableObjectKey: Boolean): FileSet = {
 
     val a = args.head;
     val htl = {
@@ -303,7 +301,7 @@ object FileSet {
     val file = (new File(path)).getCanonicalFile;
 
     // 最初の引数の FileSet を生成
-    val firstVD: FileSet = env.objectBank.load(head) match {
+    val firstVD: FileSet = ObjectBank.load(head) match {
       case None =>
         if(!notExistsOk && !file.exists){
           empty;
@@ -335,7 +333,7 @@ object FileSet {
     } else {
       ConcatFileSet(args.mkString(" "), firstVD,
         () => getArgFilesSub(args.tail,
-        notExistsOk, enableObjectKey, env));
+        notExistsOk, enableObjectKey));
     }
 
   }

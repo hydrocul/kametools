@@ -11,13 +11,13 @@ import hydrocul.kametools.ObjectBank;
 
 object EvaluateGroovy extends App {
 
-  def main(cmdName: String, args: Array[String], env: Env){
+  def main(cmdName: String, args: Array[String]){
 
     val source = args.mkString(" ");
     val binding = new GroovyBinding();
     val shell = new GroovyShell(binding);
     val result = shell.evaluate(source);
-    env.objectBank.put("$result", "AnyRef", result);
+    ObjectBank.put("$result", "AnyRef", result);
     println(result);
 
   }

@@ -8,10 +8,10 @@ import hydrocul.kametools.ObjectBank;
 
 object Print extends App {
 
-  def main(cmdName: String, args: Array[String], env: Env){
+  def main(cmdName: String, args: Array[String]){
 
     args.foreach { a =>
-      env.objectBank.load(a) match {
+      ObjectBank.load(a) match {
         case Some(ObjectBank.Field(typeName, value)) =>
           print(a);
           print(": ");

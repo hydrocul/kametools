@@ -25,7 +25,6 @@ object Main {
     if(args.size == 0){
       printHelp();
     } else {
-      val env = new Env(new ObjectBank(getDirName()));
       val cmd = args(0);
       val app: Option[App] = try {
         Some(apps(cmd));
@@ -34,7 +33,7 @@ object Main {
       }
       app match {
         case Some(a) =>
-          a.main(cmd, args.drop(1), env);
+          a.main(cmd, args.drop(1));
         case None =>
           println("Unknown command: " + cmd);
           printHelp();
@@ -46,11 +45,6 @@ object Main {
     apps.map(kv => kv._1).foreach { cmdName =>
       println("kt " + cmdName);
     }
-  }
-
-  private def getDirName(): String = {
-    import java.io.File;
-    System.getProperty("user.home") + File.separator + ".kametools";
   }
 
 }

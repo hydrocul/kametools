@@ -279,4 +279,52 @@ object ObjectBank {
 
   }
 
+  def load(name: String): Option[Field] = {
+    default.load(name);
+  }
+
+  def save(name: String, value: Option[Field]){
+    default.save(name, value);
+  }
+
+  def getOrElse[A](name: String, defaultValue: =>A): A = {
+    default.getOrElse(name, defaultValue);
+  }
+
+  def put(name: String, typeName: String, value: Any){
+    default.put(name, typeName, value);
+  }
+
+  def remove(name: String){
+    default.remove(name);
+  }
+
+  def getFiles: Map[FileSet, String] = {
+    default.getFiles;
+  }
+
+  def putFiles(fileMap: Map[FileSet, String]){
+    default.putFiles(fileMap);
+  }
+
+  def putFile(file: File, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
+    default.putFile(file, fileMap);
+  }
+
+  def putFile(fileSet: FileSet, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
+    default.putFile(fileSet, fileMap);
+  }
+
+  def putFile(name: String, fileSet: FileSet,
+    fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
+    default.putFile(name, fileSet, fileMap);
+  }
+
+  private lazy val default: ObjectBank = new ObjectBank(getDirName());
+
+  private def getDirName(): String = {
+    import java.io.File;
+    System.getProperty("user.home") + File.separator + ".kametools";
+  }
+
 }

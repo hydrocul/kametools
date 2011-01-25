@@ -13,7 +13,7 @@ import hydrocul.kametools.ObjectBank;
 
 object EvaluateScala extends App {
 
-  def main(cmdName: String, args: Array[String], env: Env){
+  def main(cmdName: String, args: Array[String]){
 
     val source = args.mkString(" ");
 
@@ -26,7 +26,7 @@ object EvaluateScala extends App {
 
     val result: InterpreterSifjResult = interpreter.interpretSifj(source, false);
     result.value match {
-      case Some(v) => env.objectBank.put("$result", v.typeName, v.value);
+      case Some(v) => ObjectBank.put("$result", v.typeName, v.value);
       case None => ;
     }
     println(result.message);

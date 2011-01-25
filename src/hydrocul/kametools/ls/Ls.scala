@@ -18,7 +18,7 @@ import hydrocul.kametools.ObjectBank;
 
 object Ls extends App {
 
-  def main(cmdName: String, args: Array[String], env: Env){
+  def main(cmdName: String, args: Array[String]){
 
     val options = new Options();
     options.addOption("r", false, "list subdirectories recursively");
@@ -105,16 +105,16 @@ object Ls extends App {
     }
 
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
-      false, true, env);
+      false, true);
     val vd2 = LsFileSet.create(vd, depth, reverse, patterns);
 
     val list: Stream[File] = vd2.toStream;
 
-    var map = env.objectBank.getFiles;
+    var map = ObjectBank.getFiles;
 
     val s = label match {
-      case Some(l) => env.objectBank.putFile(l, vd2, map);
-      case None => env.objectBank.putFile(vd2, map);
+      case Some(l) => ObjectBank.putFile(l, vd2, map);
+      case None => ObjectBank.putFile(vd2, map);
     }
     val vd2key = s._1;
     map = s._2;
@@ -123,12 +123,12 @@ object Ls extends App {
     }
 
     list.foreach { f: File =>
-      val s = env.objectBank.putFile(f, map);
+      val s = ObjectBank.putFile(f, map);
       printFileInfo(s._1, f, printTimeFormat, printFormat)
       map = s._2;
     }
 
-    env.objectBank.putFiles(map);
+    ObjectBank.putFiles(map);
 
   }
 
