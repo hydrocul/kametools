@@ -146,9 +146,9 @@ object Ls extends App {
     val t = tf.format(time);
     val f = printFormat match {
       case Some(f) => f;
-      case None => "%1$s %2$s %3$s";
+      case None => "%1$s %2$s  [%3$s]";
     }
-    println(f.format(t, key, file));
+    println(f.format(t, file, key));
   }
 
   case class LsFileSet(vd: FileSet,
