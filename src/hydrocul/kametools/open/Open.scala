@@ -28,7 +28,7 @@ object Open extends App {
   }
 
   def help(cmdName: String){
-    // TODO
+    println(cmdName); // TODO
   }
 
 }

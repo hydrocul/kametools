@@ -11,7 +11,8 @@ object Main {
     "open" -> open.Open,
     "print" -> print.Print,
     "groovy" -> groovyevaluator.EvaluateGroovy,
-    "scala" -> scalaevaluator.EvaluateScala
+    "scala" -> scalaevaluator.EvaluateScala,
+    "help" -> Help
   );
 
   def main(args: Array[String]){
@@ -26,12 +27,7 @@ object Main {
       printHelp();
     } else {
       val cmd = args(0);
-      val app: Option[App] = try {
-        Some(apps(cmd));
-      } catch {
-        case _ => None;
-      }
-      app match {
+      apps.get(cmd) match {
         case Some(a) =>
           a.main(cmd, args.drop(1));
         case None =>
@@ -45,6 +41,26 @@ object Main {
     apps.map(kv => kv._1).foreach { cmdName =>
       println("kt " + cmdName);
     }
+  }
+
+  object Help extends App {
+
+    def main(cmdName: String, args: Array[String]){
+      args.foreach { cmd =>
+        apps.get(cmd) match {
+          case Some(a) =>
+            a.help(cmd);
+          case None =>
+            println("Unknown command: " + cmd);
+            printHelp();
+        }
+      }
+    }
+
+    def help(cmdName: String){
+      println(cmdName); // TODO
+    }
+
   }
 
 }

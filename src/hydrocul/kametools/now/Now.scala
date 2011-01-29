@@ -3,7 +3,6 @@ package hydrocul.kametools.now;
 import java.util.Date;
 
 import hydrocul.kametools.App;
-import hydrocul.kametools.Env;
 
 object Now extends App {
 
