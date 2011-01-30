@@ -5,6 +5,7 @@ import java.util.regex.PatternSyntaxException;
 
 import scala.util.matching.Regex;
 
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.{ Option => CliOption }
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.OptionBuilder;
@@ -20,39 +21,7 @@ object Ls extends App {
 
   def main(cmdName: String, args: Array[String]){
 
-    val options = new Options();
-    options.addOption("r", false, "list subdirectories recursively");
-    options.addOption( {
-      val op = new CliOption("R", "recursive", true,
-        "list subdirectories recursively");
-      op.setArgName("depth");
-      op;
-    } );
-    options.addOption("reverse", false, "reverse order while sorting");
-    options.addOption( {
-      val op = new CliOption("p", "pattern", true,
-        "");
-      op.setArgName("pattern");
-      op;
-    } );
-    options.addOption( {
-      val op = new CliOption("T", "time", true,
-        "");
-      op.setArgName("format");
-      op;
-    } );
-    options.addOption( {
-      val op = new CliOption("f", "format", true,
-        "");
-      op.setArgName("format");
-      op;
-    } );
-    options.addOption( {
-      val op = new CliOption("l", "label", true,
-        "");
-      op.setArgName("label");
-      op;
-    } );
+    val options = getOptions();
 
     val parser = new PosixParser();
     val cli = try {
@@ -133,7 +102,46 @@ object Ls extends App {
   }
 
   def help(cmdName: String){
+    val formatter = new HelpFormatter();
+    formatter.printHelp("ls", getOptions());
     // TODO
+  }
+
+  private def getOptions(): Options = {
+    val options = new Options();
+    options.addOption("r", false, "list subdirectories recursively");
+    options.addOption( {
+      val op = new CliOption("R", "recursive", true,
+        "list subdirectories recursively");
+      op.setArgName("depth");
+      op;
+    } );
+    options.addOption("e", "reverse", false, "list in reverse order");
+    options.addOption( {
+      val op = new CliOption("s", "pattern", true,
+        "search by file name");
+      op.setArgName("pattern");
+      op;
+    } );
+    options.addOption( {
+      val op = new CliOption("T", "time", true,
+        "specify the time display format");
+      op.setArgName("format");
+      op;
+    } );
+    options.addOption( {
+      val op = new CliOption("f", "format", true,
+        "specify the display format");
+      op.setArgName("format");
+      op;
+    } );
+    options.addOption( {
+      val op = new CliOption("l", "label", true,
+        "label the list");
+      op.setArgName("label");
+      op;
+    } );
+    options;
   }
 
   private def printFileInfo(key: String, file: File,
