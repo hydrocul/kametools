@@ -77,7 +77,7 @@ object Ls extends App {
       false, true);
     val vd2 = LsFileSet.create(vd, depth, reverse, patterns);
 
-    val list: Stream[File] = vd2.toStream;
+    val list: FileSet = vd2;
 
     var map = ObjectBank.getFiles;
 
@@ -88,13 +88,42 @@ object Ls extends App {
     val vd2key = s._1;
     map = s._2;
     if(!vd2.isSingleFile){
-      println("%s [%s]".format(vd2key, vd2));
+      println("[%s]".format(vd2key));
     }
 
-    list.foreach { f: File =>
+    val n: Int = if(cli.hasOption("a")){
+      -1;
+    } else if(cli.hasOption("n")){
+      cli.getOptionValue("n").toInt;
+    } else {
+      20;
+    }
+
+    def printFile(f: File){
       val s = ObjectBank.putFile(f, map);
       printFileInfo(s._1, f, printTimeFormat, printFormat)
       map = s._2;
+    }
+    if(n < 0){
+      list.foreach { printFile _ }
+    } else {
+      var i = 0;
+      var l = list;
+      var existsNext = !l.isEmpty;
+      while(existsNext){
+        printFile(l.head);
+        i = i + 1;
+        l = l.tail;
+        if(i >= n){
+          val s = ObjectBank.putFile(l, map);
+          val k = s._1;
+          map = s._2;
+          println("show more: [%s]".format(k));
+          existsNext = false;
+        } else {
+          existsNext = !l.isEmpty;
+        }
+      }
     }
 
     ObjectBank.putFiles(map);
@@ -104,7 +133,6 @@ object Ls extends App {
   def help(cmdName: String){
     val formatter = new HelpFormatter();
     formatter.printHelp("ls", getOptions());
-    // TODO
   }
 
   private def getOptions(): Options = {
@@ -139,6 +167,13 @@ object Ls extends App {
       val op = new CliOption("l", "label", true,
         "label the list");
       op.setArgName("label");
+      op;
+    } );
+    options.addOption("a", false, "list all files");
+    options.addOption( {
+      val op = new CliOption("n", true,
+        "list the first n files");
+      op.setArgName("n");
       op;
     } );
     options;
