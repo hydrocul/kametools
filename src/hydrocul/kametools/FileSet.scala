@@ -8,6 +8,7 @@ import scala.collection.IterableLike;
 import scala.collection.Iterator;
 import scala.collection.immutable.Stream.StreamBuilder;
 import scala.collection.mutable.Builder;
+import scala.collection.mutable.LazyBuilder
 
 trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
@@ -53,7 +54,9 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
   override def toString = name;
 
-  override def iterator: Iterator[File] = new Iterator[File](){
+  override def iterator: Iterator[File] = new FileSetIterator();
+
+  private case class FileSetIterator() extends Iterator[File] {
 
     private var fs: FileSet = FileSet.this;
 
@@ -68,8 +71,11 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
   }
 
   override protected[this] def newBuilder: Builder[File, FileSet] = {
-    (new StreamBuilder).mapResult[FileSet] { stream: Stream[File] =>
-      FileSet.StreamFileSet.create(name, stream); }
+    new LazyBuilder[File, FileSet]{
+      override def result: FileSet = {
+        FileSet.IterableFileSet.create(name, parts.toIterable.flatMap(_.toIterable));
+      }
+    }
   }
 
 }
@@ -195,24 +201,24 @@ object FileSet {
 
   }
 
-  case class StreamFileSet(override val name: String,
-    files: Stream[File]) extends FileSet {
+  case class IterableFileSet(override val name: String,
+    files: Iterable[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = StreamFileSet.create(name, files.tail);
+    override def tail = IterableFileSet.create(name, files.tail);
 
   }
 
-  object StreamFileSet {
+  object IterableFileSet {
 
-    def create(name: String, files: Stream[File]): FileSet = {
+    def create(name: String, files: Iterable[File]): FileSet = {
       if(files.isEmpty){
         empty;
       } else {
-        StreamFileSet(name, files);
+        IterableFileSet(name, files);
       }
     }
 
