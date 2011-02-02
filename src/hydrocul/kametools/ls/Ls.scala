@@ -1,6 +1,7 @@
 package hydrocul.kametools.ls;
 
 import java.io.File;
+import java.util.NoSuchElementException;
 import java.util.regex.PatternSyntaxException;
 
 import scala.util.matching.Regex;
@@ -75,9 +76,7 @@ object Ls extends App {
 
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
       false, true);
-    val vd2 = LsFileSet.create(vd, depth, reverse, patterns);
-
-    val list: FileSet = vd2;
+    val vd2 = LsFileSet.create(vd.name, vd, depth, reverse, patterns);
 
     var map = ObjectBank.getFiles;
 
@@ -105,10 +104,10 @@ object Ls extends App {
       map = s._2;
     }
     if(n < 0){
-      list.foreach { printFile _ }
+      vd2.foreach { printFile _ }
     } else {
       var i = 0;
-      var l = list;
+      var l = vd2;
       var existsNext = !l.isEmpty;
       while(existsNext){
         printFile(l.head);
@@ -194,38 +193,55 @@ object Ls extends App {
     println(f.format(t, file, key));
   }
 
-  case class LsFileSet(vd: FileSet,
-    depth: Int, reverseOrder: Boolean,
-    pattern: Option[String]) extends FileSet {
+  case class LsFileSet(name: String,
+    files: FileSet, depth: Int, reverseOrder: Boolean,
+    next: FileSet) extends FileSet {
 
-    override lazy val name = vd.name +
-      (if(depth==0) "" else " recursive (%d)".format(depth))
-      (pattern match {
-        case None => "";
-        case Some(p) => " pattern: %s".format(p);
-      } );
+    override def isEmpty: Boolean = if(!files.isEmpty){
+      false;
+    } else {
+      next.isEmpty;
+    }
 
-    @transient private var _stream: Stream[File] = null;
-    private def stream: Stream[File] = {
-      if(_stream==null){
+    @transient private var _headTail: (File, FileSet) = null;
+    private def headTail: (File, FileSet) = {
+      if(_headTail==null){
         synchronized {
-          if(_stream==null){
-            _stream = $stream;
+          if(_headTail==null){
+            _headTail = $headTail;
           }
         }
       }
-      _stream;
+      _headTail;
     }
-    private def $stream = extractDir();
+    private def $headTail: (File, FileSet) = {
+      if(files.isEmpty){
+        (next.head, next.tail);
+      } else {
+        val f = files.head;
+        val tail = if(depth==0){
+          LsFileSet(name, files.tail, depth, reverseOrder, next);
+        } else {
+          LsFileSet(name, FileSet.DirFileSet(f, reverseOrder),
+            depth - 1, reverseOrder, LsFileSet(name, files.tail, depth,
+            reverseOrder, next));
+        }
+        (f, tail);
+      }
+    }
 
-    override def isEmpty = stream.isEmpty;
+    override def head: File = headTail._1;
 
-    override def head = stream.head;
+    override def tail: FileSet = headTail._2;
 
-    override def tail = FileSet.StreamFileSet.create(name, stream.tail);
+  }
 
-    private def extractDir(): Stream[File] = {
-      val l = if(reverseOrder) vd.toStream.reverse else vd.toStream;
+  object LsFileSet {
+
+    def create(name: String, vd: FileSet,
+      depth: Int, reverseOrder: Boolean,
+      pattern: Option[String]): FileSet = {
+
       def cond(file: File): Boolean = {
         pattern match {
           case None => ;
@@ -237,42 +253,13 @@ object Ls extends App {
         }
         true;
       }
-      extractDir(l, depth, reverseOrder, Stream.empty).
-        filter(f => cond(f));
-    }
 
-    private def extractDir(files: Stream[File], depth: Int, reverseOrder: Boolean,
-      next: => Stream[File]): Stream[File] = {
-
-      if(files.isEmpty){
-        next;
-      } else {
-        val f = files.head;
-        lazy val t: Stream[File] = if(depth == 0){
-          extractDir(files.tail, depth, reverseOrder, next);
-        } else {
-          val l: Stream[File] = FileSet.
-            DirFileSet(f, reverseOrder).toStream;
-          extractDir(l, depth - 1, reverseOrder,
-            extractDir(files.tail, depth, reverseOrder, next));
-        }
-        Stream.cons(f, t);
-      }
-    }
-
-  }
-
-  object LsFileSet {
-
-    def create(vd: FileSet,
-      depth: Int, reverseOrder: Boolean,
-      pattern: Option[String]): FileSet = {
-
-      if(depth==0 && !reverseOrder && pattern==None){
+      (if(depth==0 && !reverseOrder && pattern==None){
         vd;
       } else {
-        new LsFileSet(vd, depth, reverseOrder, pattern);
-      }
+        LsFileSet(name, vd, depth, reverseOrder, FileSet.empty);
+      }).filter(cond(_));
+
     }
 
   }
