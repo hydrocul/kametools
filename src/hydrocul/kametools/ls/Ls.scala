@@ -48,7 +48,7 @@ object Ls extends App {
       0;
     }
 
-    val reverse: Boolean = cli.hasOption("reverse");
+    val reverse: Boolean = cli.hasOption("e");
 
     val patterns: Option[String] = if(cli.hasOption("pattern")){
       Some(cli.getOptionValue("pattern"));
@@ -75,7 +75,7 @@ object Ls extends App {
     }
 
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
-      false, true);
+      false, true, reverse);
     val vd2 = LsFileSet.create(vd.name, vd, depth, reverse, patterns);
 
     var map = ObjectBank.getFiles;
@@ -95,7 +95,7 @@ object Ls extends App {
     } else if(cli.hasOption("n")){
       cli.getOptionValue("n").toInt;
     } else {
-      20;
+      50;
     }
 
     def printFile(f: File){

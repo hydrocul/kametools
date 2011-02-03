@@ -270,23 +270,30 @@ object FileSet {
 
   def getArgFiles(args: Seq[String], ifEmpty: Option[String],
     notExistsOk: Boolean, enableObjectKey: Boolean): FileSet = {
+    getArgFiles(args, ifEmpty, notExistsOk, enableObjectKey, false);
+  }
+
+  def getArgFiles(args: Seq[String], ifEmpty: Option[String],
+    notExistsOk: Boolean, enableObjectKey: Boolean,
+    reverse: Boolean): FileSet = {
 
     if(args.size == 0){
       // 引数がない場合
       ifEmpty match {
         case None => empty;
-        case Some(p) => getArgFiles(Array(p), None,
-          notExistsOk, enableObjectKey);
+        case Some(p) => getArgFilesSub(Array(p),
+          notExistsOk, enableObjectKey, reverse);
       }
     } else {
       // 引数がある場合
-      getArgFilesSub(args, notExistsOk, enableObjectKey);
+      getArgFilesSub(args, notExistsOk, enableObjectKey, reverse);
 
     }
   }
 
   private def getArgFilesSub(args: Seq[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean): FileSet = {
+    notExistsOk: Boolean, enableObjectKey: Boolean,
+    reverse: Boolean): FileSet = {
 
     val a = args.head;
     val htl = {
@@ -313,7 +320,7 @@ object FileSet {
           empty;
         } else {
           (list, tail) match {
-            case (true, _) => DirFileSet(file, false);
+            case (true, _) => DirFileSet(file, reverse);
             case (false, None) => OneFileSet(file);
             case (false, Some(tail)) => OneFileSet(file).getChild(tail);
           }
@@ -327,7 +334,7 @@ object FileSet {
             case d: FileSet => d;
           }
           (list, tail) match {
-            case (true, _) => d.getChildren(false);
+            case (true, _) => d.getChildren(reverse);
             case (false, None) => d;
             case (false, Some(tail)) => d.getChild(tail);
           }
@@ -339,7 +346,7 @@ object FileSet {
     } else {
       ConcatFileSet(args.mkString(" "), firstVD,
         () => getArgFilesSub(args.tail,
-        notExistsOk, enableObjectKey));
+        notExistsOk, enableObjectKey, reverse));
     }
 
   }
