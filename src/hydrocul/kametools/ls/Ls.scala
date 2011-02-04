@@ -48,7 +48,7 @@ object Ls extends App {
       0;
     }
 
-    val reverse: Boolean = cli.hasOption("e");
+    val reverse: Boolean = cli.hasOption("v");
 
     val patterns: Option[String] = if(cli.hasOption("pattern")){
       Some(cli.getOptionValue("pattern"));
@@ -143,7 +143,7 @@ object Ls extends App {
       op.setArgName("depth");
       op;
     } );
-    options.addOption("e", "reverse", false, "list in reverse order");
+    options.addOption("v", "reverse", false, "list in reverse order");
     options.addOption( {
       val op = new CliOption("s", "pattern", true,
         "search by file name");
