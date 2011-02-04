@@ -134,11 +134,11 @@ class ObjectBank(dirName: String){
   import groovy.lang.GroovyShell;
 
   private case class LoadAction(name: String);
-  private case class SaveAction(name: String, value: Option[Field]);
+  private case class SaveAction(name: String, typeName: String, value: Option[Any]);
 
   private val ioActor = new DaemonActor(){ def act(){
 
-    def load(name: String): Option[Field] = {
+    def load(name: String): (String, Any) = {
       val fname = dirName + File.separator + name;
       try {
         if((new File(fname + ".txt")).exists){
@@ -157,16 +157,16 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def loadString(fname: String): Field = {
-      Field("java.lang.String", loadStringSub(fname, "-string.txt"));
+    def loadString(fname: String): (String, Any) = {
+      ("java.lang.String", loadStringSub(fname, "-string.txt"));
     }
 
-    def loadGroovyObject(fname: String): Field = {
+    def loadGroovyObject(fname: String): (String, Any) = {
       val source = loadStringSub(fname, ".groovy");
       val binding = new GroovyBinding();
       val shell = new GroovyShell(binding);
       val result = shell.evaluate(source);
-      Field("AnyRef", result);
+      ("AnyRef", result);
     }
 
     def loadStringSub(fname: String, fnamePostfix: String): String = {
@@ -186,28 +186,30 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def loadObject(fname: String): Field = {
+    def loadObject(fname: String): (String, Any) = {
       val fip = new FileInputStream(fname + ".dat");
       val oip = new ObjectInputStream(fip);
       try {
-        oip.readObject().asInstanceOf[Field];
+        val typeName = oip.readUTF();
+        val value = oip.readObject();
+        (typeName, value);
       } finally {
         oip.close();
       }
     }
 
-    def save(name: String, value: Option[Field]){
+    def save(name: String, typeName: String, value: Option[Any]){
       val fname = dirName + File.separator + name;
       try {
         remove(fname);
         value match {
-          case Some(obj) =>
+          case Some(value) =>
             (new File(dirName)).mkdirs();
-            obj match {
-              case Field("java.lang.String", str: String) =>
+            value match {
+              case str: String =>
                 saveString(fname, str);
-              case field =>
-                saveObject(fname, field);
+              case value =>
+                saveObject(fname, typeName, value);
             }
           case None => ;
         }
@@ -230,11 +232,12 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def saveObject(fname: String, field: Field){
+    def saveObject(fname: String, typeName: String, value: Any){
       val fop = new FileOutputStream(fname + ".dat");
       val oop = new ObjectOutputStream(fop);
       try {
-        oop.writeObject(field);
+        oop.writeUTF(typeName);
+        oop.writeObject(value);
       } finally {
         oop.close();
       }
@@ -259,25 +262,12 @@ class ObjectBank(dirName: String){
       }
     }
 
-  }}; ioActor.start();
+  }};
+  ioActor.start();
 
 }
 
 object ObjectBank {
-
-  case class Field(typeName: String, value: Any){
-
-    def get[A]: A = value.asInstanceOf[A];
-
-    def getOrElse[A](defaultValue: =>A): A = {
-      try {
-        value.asInstanceOf[A];
-      } catch {
-        case _ => defaultValue;
-      }
-    }
-
-  }
 
   def load(name: String): Option[Field] = {
     default.load(name);
