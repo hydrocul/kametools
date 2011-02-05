@@ -11,8 +11,8 @@ object Print extends App {
   def main(cmdName: String, args: Array[String]){
 
     args.foreach { a =>
-      ObjectBank.load(a) match {
-        case Some(ObjectBank.Field(typeName, value)) =>
+      ObjectBank.get(a) match {
+        case Some((typeName, value)) =>
           print(a);
           print(": ");
           print(typeName);
@@ -26,7 +26,8 @@ object Print extends App {
   }
 
   def help(cmdName: String){
-    // TODO
+    println("print object");
+    println("usage: kt print <name>");
   }
 
 }

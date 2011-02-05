@@ -91,7 +91,7 @@ object Ls extends App {
     }
 
     val n: Int = if(cli.hasOption("a")){
-      -1;
+      0;
     } else if(cli.hasOption("n")){
       cli.getOptionValue("n").toInt;
     } else {
@@ -103,7 +103,7 @@ object Ls extends App {
       printFileInfo(s._1, f, printTimeFormat, printFormat)
       map = s._2;
     }
-    if(n < 0){
+    if(n <= 0){
       vd2.foreach { printFile _ }
     } else {
       var i = 0;
