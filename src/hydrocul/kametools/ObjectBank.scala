@@ -7,8 +7,8 @@ class ObjectBank(dirName: String){
   import ObjectBank._;
 
   def get(name: String): Option[(String, Any)] = {
-    val r: (String, Option[Any]) = (ioActor !? LoadAction(name)).
-      asInstanceOf[(String, Option[Any])];
+    (ioActor !? LoadAction(name)).
+      asInstanceOf[Option[(String, Option[Any])]];
   }
 
   def getOrElse[A](name: String, defaultValue: =>A): A = {
@@ -86,7 +86,7 @@ class ObjectBank(dirName: String){
       } else {
         createRandom(4);
       }
-      load(r) match {
+      get(r) match {
         case None => r;
         case Some(_) => createName(level + 1);
       }
@@ -144,7 +144,7 @@ class ObjectBank(dirName: String){
 
   private val ioActor = new DaemonActor(){ def act(){
 
-    def load(name: String): (String, Any) = {
+    def load(name: String): Option[(String, Any)] = {
       val fname = dirName + File.separator + name;
       try {
         if((new File(fname + ".txt")).exists){
@@ -263,9 +263,11 @@ class ObjectBank(dirName: String){
 
     loop {
       react {
-        case LoadAction(name) => reply(load(name));
-        case SaveAction(name, typeName, value) =>
-          save(name, typeName, value); reply(true);
+        case LoadAction(name) =>
+          reply(load(name));
+        case SaveAction(name, typeNameAndValue) =>
+          save(name, typeNameAndValue);
+          reply(true);
       }
     }
 
@@ -285,7 +287,7 @@ object ObjectBank {
   }
 
   def put(name: String, typeNameAndValue: Option[(String, Any)]){
-    default.save(name, value);
+    default.put(name, typeNameAndValue);
   }
 
   def put(name: String, typeName: String, value: Any){
