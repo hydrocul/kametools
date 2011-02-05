@@ -85,9 +85,6 @@ object Ls extends App {
     }
     val vd2key = s._1;
     map = s._2;
-    if(!vd2.isSingleFile){
-      println("[%s]".format(vd2key));
-    }
 
     val n: Int = if(cli.hasOption("a")){
       0;
@@ -97,6 +94,9 @@ object Ls extends App {
       50;
     }
 
+    if(!vd2.isSingleFile && n > 0){
+      println("[%s]".format(vd2key));
+    }
     def printFile(f: File){
       val s = ObjectBank.putFile(f, map);
       printFileInfo(s._1, f, printTimeFormat, printFormat)
