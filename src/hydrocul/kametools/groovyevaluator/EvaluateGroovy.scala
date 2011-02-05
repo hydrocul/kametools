@@ -28,9 +28,17 @@ object EvaluateGroovy extends App {
 
     val binding = new GroovyBinding();
     val shell = new GroovyShell(binding);
-    val result = shell.evaluate(source);
 
-    (Some(("AnyRef", result)), result.toString);
+    val source2 = source.replaceAll("\\$([$a-zA-Z][$a-zA-Z0-9]*)",
+      "ob['$1']");
+    val source3 = if(source2==source) source else {
+      "import hydrocul.kametools.ob; " + source2;
+    }
+
+    val result = shell.evaluate(source3);
+    val msg = if(result==null) "" else result.toString;
+
+    (Some(("AnyRef", result)), msg);
 
   }
 

@@ -327,3 +327,31 @@ object ObjectBank {
   }
 
 }
+
+object ob {
+
+  // for scala
+  def apply(name: String): Any = {
+    ObjectBank.get(name) match {
+      case Some((_, v)) => v;
+      case None => throw new NoSuchElementException("key: " + name);
+    }
+  }
+
+  // for scala
+  def update(name: String, value: Any){
+    ObjectBank.put(name, "Any", value);
+  }
+
+  // for groovy
+  def get(name: String): Any = {
+    apply(name);
+  }
+
+  // for groovy
+  def put(name: String, value: Any){
+    update(name, value);
+  }
+
+}
+
