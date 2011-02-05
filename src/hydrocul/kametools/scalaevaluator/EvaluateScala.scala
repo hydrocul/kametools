@@ -35,7 +35,7 @@ object EvaluateScala extends App {
     val interpreter = new scala.tools.nsc.InterpreterSifj(settings,
       new java.io.PrintWriter(sout));
 
-    val source2 = source.replaceAll("\\$([$a-zA-Z][$a-zA-Z0-9]*)",
+    val source2 = source.replaceAll("#([$a-zA-Z][$a-zA-Z0-9]*)",
       "hydrocul.kametools.ob(\"$1\")");
 
     val result: InterpreterSifjResult = interpreter.interpretSifj(
