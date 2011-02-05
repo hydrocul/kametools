@@ -314,7 +314,7 @@ object FileSet {
     val file = (new File(path)).getCanonicalFile;
 
     // 最初の引数の FileSet を生成
-    val firstVD: FileSet = ObjectBank.load(head) match {
+    val firstVD: FileSet = ObjectBank.get(head) match {
       case None =>
         if(!notExistsOk && !file.exists){
           empty;
@@ -325,7 +325,7 @@ object FileSet {
             case (false, Some(tail)) => OneFileSet(file).getChild(tail);
           }
         }
-      case Some(ObjectBank.Field(_, f)) =>
+      case Some((_, f)) =>
         if(file.exists){
           throw new ParseException("duplicated: " + head);
         } else {
