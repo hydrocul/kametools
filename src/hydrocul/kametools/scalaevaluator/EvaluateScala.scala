@@ -16,6 +16,18 @@ object EvaluateScala extends App {
 
     val source = args.mkString(" ");
 
+    val result = evaluate(source);
+
+    result._1 match {
+      case Some(v) => ObjectBank.put("$result", v._1, v._2);
+      case None => ;
+    }
+    println(result._2);
+
+  }
+
+  private def evaluate(source: String): (Option[(String, Any)], String) = {
+
     val classPath = System.getProperty("java.class.path");
     val settings = new scala.tools.nsc.Settings;
     settings.classpath.value = classPath;
@@ -25,10 +37,9 @@ object EvaluateScala extends App {
 
     val result: InterpreterSifjResult = interpreter.interpretSifj(source, false);
     result.value match {
-      case Some(v) => ObjectBank.put("$result", v.typeName, v.value);
-      case None => ;
+      case Some(v) => (Some((v.typeName, v.value)), result.message);
+      case None => (None, result.message);
     }
-    println(result.message);
 
   }
 
