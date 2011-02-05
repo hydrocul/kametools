@@ -3,7 +3,6 @@ package hydrocul.kametools.print;
 import java.io.File;
 
 import hydrocul.kametools.App;
-import hydrocul.kametools.Env;
 import hydrocul.kametools.ObjectBank;
 
 object Print extends App {

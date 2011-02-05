@@ -6,7 +6,6 @@ import groovy.lang.{Binding => GroovyBinding};
 import groovy.lang.GroovyShell;
 
 import hydrocul.kametools.App;
-import hydrocul.kametools.Env;
 import hydrocul.kametools.ObjectBank;
 
 object EvaluateGroovy extends App {

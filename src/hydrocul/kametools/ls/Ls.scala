@@ -14,7 +14,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import hydrocul.kametools.App;
-import hydrocul.kametools.Env;
 import hydrocul.kametools.FileSet;
 import hydrocul.kametools.ObjectBank;
 
