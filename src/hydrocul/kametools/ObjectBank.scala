@@ -6,27 +6,32 @@ class ObjectBank(dirName: String){
 
   import ObjectBank._;
 
-  def load(name: String): Option[Field] = {
-    (ioActor !? LoadAction(name)).asInstanceOf[Option[Field]];
-  }
-
-  def save(name: String, value: Option[Field]){
-    ioActor !? SaveAction(name, value);
+  def get(name: String): Option[(String, Any)] = {
+    val r: (String, Option[Any]) = (ioActor !? LoadAction(name)).
+      asInstanceOf[(String, Option[Any])];
   }
 
   def getOrElse[A](name: String, defaultValue: =>A): A = {
-    load(name) match {
-      case Some(f) => f.getOrElse[A](defaultValue);
+    get(name) match {
+      case Some((_, v)) => try {
+        v.asInstanceOf[A];
+      } catch {
+        case _ => defaultValue;
+      }
       case None => defaultValue;
     }
   }
 
+  def put(name: String, typeNameAndValue: Option[(String, Any)]){
+    ioActor !? SaveAction(name, typeNameAndValue);
+  }
+
   def put(name: String, typeName: String, value: Any){
-    save(name, Some(Field(typeName, value)));
+    put(name, Some(typeName, value));
   }
 
   def remove(name: String){
-    save(name, None);
+    put(name, None);
   }
 
   def getFiles: Map[FileSet, String] = {
@@ -134,7 +139,8 @@ class ObjectBank(dirName: String){
   import groovy.lang.GroovyShell;
 
   private case class LoadAction(name: String);
-  private case class SaveAction(name: String, typeName: String, value: Option[Any]);
+  private case class SaveAction(name: String,
+    typeNameAndValue: Option[(String, Any)]);
 
   private val ioActor = new DaemonActor(){ def act(){
 
@@ -198,17 +204,17 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def save(name: String, typeName: String, value: Option[Any]){
+    def save(name: String, typeNameAndValue: Option[(String, Any)]){
       val fname = dirName + File.separator + name;
       try {
         remove(fname);
-        value match {
-          case Some(value) =>
+        typeNameAndValue match {
+          case Some(tv) =>
             (new File(dirName)).mkdirs();
-            value match {
-              case str: String =>
+            tv match {
+              case ("java.lang.String", str: String) =>
                 saveString(fname, str);
-              case value =>
+              case (typeName, value) =>
                 saveObject(fname, typeName, value);
             }
           case None => ;
@@ -258,7 +264,8 @@ class ObjectBank(dirName: String){
     loop {
       react {
         case LoadAction(name) => reply(load(name));
-        case SaveAction(name, value) => save(name, value); reply(true);
+        case SaveAction(name, typeName, value) =>
+          save(name, typeName, value); reply(true);
       }
     }
 
@@ -269,16 +276,16 @@ class ObjectBank(dirName: String){
 
 object ObjectBank {
 
-  def load(name: String): Option[Field] = {
-    default.load(name);
-  }
-
-  def save(name: String, value: Option[Field]){
-    default.save(name, value);
+  def get(name: String): Option[(String, Any)] = {
+    default.get(name);
   }
 
   def getOrElse[A](name: String, defaultValue: =>A): A = {
     default.getOrElse(name, defaultValue);
+  }
+
+  def put(name: String, typeNameAndValue: Option[(String, Any)]){
+    default.save(name, value);
   }
 
   def put(name: String, typeName: String, value: Any){
