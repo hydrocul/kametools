@@ -9,14 +9,9 @@ if [ -z "$KT_HOME" ] ; then
   KT_HOME="`dirname $KT_HOME`"
 fi
 
-KT_PLATFORM=
 KT_JAVA_OPTS=
 if [ `uname` = "Darwin" ] ; then
-  KT_PLATFORM="Mac"
   KT_JAVA_OPTS="-Dfile.encoding=UTF-8"
-else
-  KT_PLATFORM="Gnome"
 fi
 
-java -Dkt.platform=$KT_PLATFORM $KT_JAVA_OPTS -cp "$KT_HOME/class:$KT_HOME/lib/*:$SCALA_HOME/lib/*" hydrocul.kametools.Main "$@"
-#scala -Dkt.platform=$KT_PLATFORM -cp "$KT_HOME/class:$KT_HOME/lib/*" hydrocul.kametools.Main "$@"
+java -Dkt.platform= $KT_JAVA_OPTS -cp "$KT_HOME/build/hydrocul-kametools.jar:$KT_HOME/lib/*:$SCALA_HOME/lib/*" hydrocul.kametools.Main "$@"

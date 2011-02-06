@@ -30,6 +30,12 @@ fi
 
 . make.sh test
 
+if [ $? -ne 0 ] ; then
+exit 1
+fi
+
+. make.sh build
+
 ;;
 ################################
 test)
@@ -40,7 +46,8 @@ buildlib_test
 ################################
 build)
 ################################
-buildlib_build_jar hydrocul-kametools.jar
+echo "build build/hydrocul-kametools.jar"
+buildlib_build_jar hydrocul-kametools.jar >/dev/null
 
 ;;
 ################################
