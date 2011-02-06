@@ -10,6 +10,7 @@ object Main {
     "ll" -> ls.Ls,
     "open" -> open.Open,
     "print" -> print.Print,
+    "web" -> web.HtmlUnitBrowser,
     "groovy" -> groovyevaluator.EvaluateGroovy,
     "scala" -> scalaevaluator.EvaluateScala,
     "help" -> Help

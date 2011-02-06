@@ -20,6 +20,7 @@ if [ $? -ne 0 ] ; then
   buildlib_dl_kameutil
   buildlib_dl_si4j
   buildlib_dl_groovy
+  buildlib_dl_htmlunit
 fi
 
 buildlib_compile
