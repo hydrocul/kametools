@@ -147,7 +147,7 @@ class ObjectBank(dirName: String){
     def load(name: String): Option[(String, Any)] = {
       val fname = dirName + File.separator + name;
       try {
-        if((new File(fname + ".txt")).exists){
+        if((new File(fname + "-string.txt")).exists){
           Some(loadString(fname));
         } else if((new File(fname + ".dat")).exists){
           Some(loadObject(fname));
@@ -319,9 +319,9 @@ object ObjectBank {
     default.putFile(name, fileSet, fileMap);
   }
 
-  private lazy val default: ObjectBank = new ObjectBank(getDirName());
+  lazy val default: ObjectBank = new ObjectBank(dirName);
 
-  private def getDirName(): String = {
+  def dirName: String = {
     import java.io.File;
     System.getProperty("user.home") + File.separator + ".kametools";
   }
