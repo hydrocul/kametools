@@ -47,6 +47,10 @@ object Ls extends App {
       0;
     }
 
+    //----
+    // start reading options
+    //----
+
     val reverse: Boolean = cli.hasOption("v");
 
     val patterns: Option[String] = if(cli.hasOption("pattern")){
@@ -73,6 +77,19 @@ object Ls extends App {
       None;
     }
 
+    val count: Int = if(cli.hasOption("a")){
+      0;
+    } else if(cli.hasOption("n")){
+      cli.getOptionValue("n").toInt;
+    } else {
+      50;
+    }
+
+    //----
+    // end reading options
+    //----
+
+    // create FileSet
     val vd = FileSet.getArgFiles(cli.getArgs, Some("./"),
       false, true, reverse);
     val vd2 = LsFileSet.create(vd.name, vd, depth, reverse, patterns);
@@ -86,15 +103,7 @@ object Ls extends App {
     val vd2key = s._1;
     map = s._2;
 
-    val n: Int = if(cli.hasOption("a")){
-      0;
-    } else if(cli.hasOption("n")){
-      cli.getOptionValue("n").toInt;
-    } else {
-      50;
-    }
-
-    if(!vd2.isSingleFile && n > 0){
+    if(!vd2.isSingleFile && count > 0){
       println("[%s]".format(vd2key));
     }
     def printFile(f: File){
@@ -102,7 +111,7 @@ object Ls extends App {
       printFileInfo(s._1, f, printTimeFormat, printFormat)
       map = s._2;
     }
-    if(n <= 0){
+    if(count <= 0){
       vd2.foreach { printFile _ }
     } else {
       var i = 0;
@@ -112,7 +121,7 @@ object Ls extends App {
         printFile(l.head);
         i = i + 1;
         l = l.tail;
-        if(i >= n){
+        if(i >= count){
           val s = ObjectBank.putFile(l, map);
           val k = s._1;
           map = s._2;
