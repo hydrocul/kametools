@@ -28,6 +28,8 @@ object HtmlUnitBrowser extends App {
         return;
     }
 
+    val textOnly: Boolean = cli.hasOption("t");
+
     val url = cli.getArgs.head;
 
     val ua = new WebClient();
@@ -35,17 +37,23 @@ object HtmlUnitBrowser extends App {
     ua.waitForBackgroundJavaScript(1000);
     html match {
       case html: HtmlPage =>
-        println(html.asXml);
+        if(textOnly){
+          println(html.asText);
+        } else {
+          println(html.asXml);
+        }
     }
 
   }
 
   def help(cmdName: String){
-    // TODO
+    val formatter = new HelpFormatter();
+    formatter.printHelp("ls", getOptions());
   }
 
   private def getOptions(): Options = {
     val options = new Options();
+    options.addOption("t", false, "display text only");
     options;
   }
 
