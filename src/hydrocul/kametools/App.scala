@@ -41,7 +41,7 @@ object App {
 
   class StandardEnv extends Env {
 
-    override lazy val out: PrintWriter = new PrintWriter(System.out);
+    override lazy val out: PrintWriter = new PrintWriter(System.out, true);
 
   }
 
@@ -49,7 +49,7 @@ object App {
 
     private val sp = new StringWriter();
 
-    override lazy val out: PrintWriter = new PrintWriter(System.out, true);
+    override lazy val out: PrintWriter = new PrintWriter(sp, true);
 
     def getOutput(): String = sp.toString;
 
