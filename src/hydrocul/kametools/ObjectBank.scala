@@ -1,75 +1,119 @@
 package hydrocul.kametools;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.{StringBuilder => JStringBuilder}
+
+import scala.actors.Actor.loop
+import scala.actors.Actor.react;
+import scala.actors.Actor.reply;
+import scala.actors.DaemonActor;
+
+import groovy.lang.{Binding => GroovyBinding};
+import groovy.lang.GroovyShell;
 
 class ObjectBank(dirName: String){
 
   import ObjectBank._;
 
-  def get(name: String): Option[(String, Any)] = {
+  def get(name: String): Option[AnyRef] = {
     (ioActor !? LoadAction(name)).
-      asInstanceOf[Option[(String, Option[Any])]];
+      asInstanceOf[Option[AnyRef]];
   }
 
   def getOrElse[A](name: String, defaultValue: =>A): A = {
     get(name) match {
-      case Some((_, v)) => try {
-        v.asInstanceOf[A];
-      } catch {
-        case _ => defaultValue;
-      }
-      case None => defaultValue;
+      case Some(v: A) => v;
+      case _ => defaultValue;
     }
   }
 
-  def put(name: String, typeNameAndValue: Option[(String, Any)]){
-    ioActor !? SaveAction(name, typeNameAndValue);
+  def getNameByValue(value: AnyRef): Option[String] = {
+    val hashName = getHashName(value);
+    val list = getOrElse[List[String]](hashName, Nil);
+    list.find ( s =>
+      get(s) match {
+        case Some(v) if(v==value) => true;
+        case _ => false;
+      }
+    );
   }
 
-  def put(name: String, typeName: String, value: Any){
-    put(name, Some(typeName, value));
+  def put(name: String, value: Option[AnyRef]){
+    var changed = true;
+    get(name).foreach { oldValue =>
+      if(oldValue == value){
+        changed = false;
+      } else {
+        val hashName = getHashName(oldValue);
+        val list = getOrElse[List[String]](hashName, Nil);
+        val newList = list.filter(s => s != name);
+        putRaw(hashName, newList);
+      }
+    }
+    if(changed){
+      putRaw(name, value);
+    }
+    val hashName = getHashName(value);
+    val list = getOrElse[List[String]](hashName, Nil);
+    val newList = name :: list;
+    putRaw(hashName, newList);
+  }
+
+  /**
+   * returns name.
+   */
+  def put(value: AnyRef): String = {
+    val name = getNamesByValue(value) match {
+      case Some(name) => name;
+      case None => "." + createRandomName;
+    }
+    put(name, value);
+    name;
+  }
+
+  private def putRaw(name: String, value: Option[AnyRef]){
+    ioActor !? SaveAction(name, value);
   }
 
   def remove(name: String){
     put(name, None);
   }
 
-  def getFiles: Map[FileSet, String] = {
-    getOrElse[Map[FileSet, String]](".files", Map());
-  }
+  private def createRandomName: String = {
 
-  def putFiles(fileMap: Map[FileSet, String]){
-    put(".files", "scala.collection.immutable.Map[hydrocul.kametools.FileSet,java.lang.String]", fileMap);
-  }
-
-  def putFile(file: File, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
-    putFile(FileSet.OneFileSet(file), fileMap);
-  }
-
-  def putFile(fileSet: FileSet, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
-
-    def createRandom0(): String = {
+    def create1: String = {
+      // 21 * 5 * 21 patterns
       val first1 = "bcdfghjklmnpqrstvwxyz";
       val first2 = "aeiou";
-      val first = first1.length * first2.length * first1.length;
-      val second = first2.length * first1.length;
-      val sum = first + second;
       val ret = new StringBuilder();
-      val d = (math.random * sum);
-      if(d < first){
-        ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
-        ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
-        ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
-      } else {
-        ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
-        val c = first1.charAt((math.random * first1.length).asInstanceOf[Int]);
-        ret.append(c);
-        ret.append(c);
-      }
+      ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
+      ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
+      ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
       ret.toString;
     }
 
-    def createRandom(len: Int): String = {
+    def create2: String = {
+      // 21 * 5 patterns
+      val first1 = "bcdfghjklmnpqrstvwxyz";
+      val first2 = "aeiou";
+      val ret = new StringBuilder();
+      ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
+      val c = first1.charAt((math.random * first1.length).asInstanceOf[Int]);
+      ret.append(c);
+      ret.append(c);
+      ret.toString;
+    }
+
+    def create3(len: Int): String = {
       val ret = new StringBuilder();
       (1 to len).foreach { _ =>
         val r = (math.random * 26).asInstanceOf[Int];
@@ -78,81 +122,45 @@ class ObjectBank(dirName: String){
       ret.toString;
     }
 
-    def createName(level: Int): String = {
-      val r = if(level < 2){
-        createRandom0();
-      } else if(level < 6){
-        createRandom(3);
-      } else {
-        createRandom(4);
+    def create(level: Int): String = {
+      val d1 = 21 * 5 * 21;
+      val d2 = 21 * 5;
+      val name = level match {
+        case level if(level < 4) =>
+          if(math.random * (d1 + d2) < d1){
+            create1;
+          } else {
+            create2;
+          }
+        case level =>
+          create3((level - 4) / 4 + 3);
       }
-      get(r) match {
-        case None => r;
-        case Some(_) => createName(level + 1);
-      }
-    }
-
-    val ret: (String, Map[FileSet, String]) = {
-      fileMap.get(fileSet) match {
-        case Some(s) => (s, fileMap);
-        case None =>
-          val s = createName(0);
-          (s, fileMap + (fileSet -> s));
+      get(name) match {
+        case None => name;
+        case Some(_) => create(level + 1);
       }
     }
 
-    putFile("." + ret._1, fileSet, fileMap);
+    create(0);
 
   }
 
-  def putFile(name: String, fileSet: FileSet,
-    fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
 
-    val name2 = (if(name.startsWith("."))
-      name.substring(1) else name);
-
-    val newFileMap = fileMap + (fileSet -> name2);
-
-    put(name, "hydrocul.kametools.FileSet", fileSet);
-
-    (name2, newFileMap);
-
-  }
-
-  import java.io.BufferedReader;
-  import java.io.FileInputStream;
-  import java.io.FileNotFoundException;
-  import java.io.FileOutputStream;
-  import java.io.InputStreamReader;
-  import java.io.IOException;
-  import java.io.ObjectInputStream;
-  import java.io.ObjectOutputStream;
-  import java.io.OutputStreamWriter;
-  import java.lang.{StringBuilder => JStringBuilder}
-
-  import scala.actors.Actor.loop
-  import scala.actors.Actor.react;
-  import scala.actors.Actor.reply;
-  import scala.actors.DaemonActor;
-
-  import groovy.lang.{Binding => GroovyBinding};
-  import groovy.lang.GroovyShell;
 
   private case class LoadAction(name: String);
-  private case class SaveAction(name: String,
-    typeNameAndValue: Option[(String, Any)]);
+  private case class SaveAction(name: String, value: Option[AnyRef]);
 
   private val ioActor = new DaemonActor(){ def act(){
 
-    def load(name: String): Option[(String, Any)] = {
-      val fname = dirName + File.separator + name;
+    def load(name: String): Option[AnyRef] = {
+      val fnameBody = dirName + File.separator + name;
       try {
-        if((new File(fname + "-string.txt")).exists){
-          Some(loadString(fname));
-        } else if((new File(fname + ".dat")).exists){
-          Some(loadObject(fname));
-        } else if((new File(fname + ".groovy")).exists){
-          Some(loadGroovyObject(fname));
+        if((new File(fnameBody + "-string.txt")).exists){
+          Some(loadString(fnameBody));
+        } else if((new File(fnameBody + ".groovy")).exists){
+          Some(loadGroovyObject(fnameBody));
+        } else if((new File(fnameBody + ".dat")).exists){
+          Some(loadObject(fnameBody));
         } else if(!name.startsWith(".")){
           load("." + name);
         } else {
@@ -163,20 +171,20 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def loadString(fname: String): (String, Any) = {
-      ("java.lang.String", loadStringSub(fname, "-string.txt"));
+    def loadString(fnameBody: String): AnyRef = {
+      loadStringSub(fnameBody, "-string.txt");
     }
 
-    def loadGroovyObject(fname: String): (String, Any) = {
-      val source = loadStringSub(fname, ".groovy");
+    def loadGroovyObject(fnameBody: String): AnyRef = {
+      val source = loadStringSub(fnameBody, ".groovy");
       val binding = new GroovyBinding();
       val shell = new GroovyShell(binding);
       val result = shell.evaluate(source);
-      ("AnyRef", result);
+      result;
     }
 
-    def loadStringSub(fname: String, fnamePostfix: String): String = {
-      val fip = new FileInputStream(fname + fnamePostfix);
+    def loadStringSub(fnameBody: String, fnamePostfix: String): String = {
+      val fip = new FileInputStream(fnameBody + fnamePostfix);
       val reader = new BufferedReader(new InputStreamReader(fip));
       val buf = new JStringBuilder();
       try {
@@ -192,30 +200,29 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def loadObject(fname: String): (String, Any) = {
-      val fip = new FileInputStream(fname + ".dat");
+    def loadObject(fnameBody: String): AnyRef = {
+      val fip = new FileInputStream(fnameBody + ".dat");
       val oip = new ObjectInputStream(fip);
       try {
-        val typeName = oip.readUTF();
         val value = oip.readObject();
-        (typeName, value);
+        value;
       } finally {
         oip.close();
       }
     }
 
-    def save(name: String, typeNameAndValue: Option[(String, Any)]){
-      val fname = dirName + File.separator + name;
+    def save(name: String, value: Option[AnyRef]){
+      val fnameBody = dirName + File.separator + name;
       try {
-        remove(fname);
-        typeNameAndValue match {
-          case Some(tv) =>
+        remove(fnameBody);
+        value match {
+          case Some(value) =>
             (new File(dirName)).mkdirs();
-            tv match {
-              case ("java.lang.String", str: String) =>
-                saveString(fname, str);
-              case (typeName, value) =>
-                saveObject(fname, typeName, value);
+            value match {
+              case str: String =>
+                saveString(fnameBody, str);
+              case value =>
+                saveObject(fnameBody, value);
             }
           case None => ;
         }
@@ -224,12 +231,12 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def saveString(fname: String, str: String){
-      saveStringSub(fname, "-string.txt", str);
+    def saveString(fnameBody: String, str: String){
+      saveStringSub(fnameBody, "-string.txt", str);
     }
 
-    def saveStringSub(fname: String, fnamePostfix: String, str: String){
-      val fop = new FileOutputStream(fname + fnamePostfix);
+    def saveStringSub(fnameBody: String, fnamePostfix: String, str: String){
+      val fop = new FileOutputStream(fnameBody + fnamePostfix);
       val writer = new OutputStreamWriter(fop);
       try {
         writer.write(str);
@@ -238,120 +245,84 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def saveObject(fname: String, typeName: String, value: Any){
-      val fop = new FileOutputStream(fname + ".dat");
+    def saveObject(fnameBody: String, typeName: String, value: Any){
+      val fop = new FileOutputStream(fnameBody + ".dat");
       val oop = new ObjectOutputStream(fop);
       try {
-        oop.writeUTF(typeName);
         oop.writeObject(value);
       } finally {
         oop.close();
       }
     }
 
-    def remove(fname: String){
+    def remove(fnameBody: String){
       var f = false;
-      val fp1 = new File(fname + ".dat");
+      val fp1 = new File(fnameBody + "-string.txt");
       if(fp1.exists && !fp1.delete())
         f = true;
-      val fp2 = new File(fname + ".txt");
+      val fp2 = new File(fnameBody + ".groovy");
       if(fp2.exists && !fp2.delete())
         f = true;
+      val fp3 = new File(fnameBody + ".dat");
+      if(fp3.exists && !fp3.delete())
+        f = true;
       if(f)
-        throw new IOException("Cannot delete file:" + fname + ".*");
+        throw new IOException("Cannot delete file:" + fnameBody + ".*");
     }
 
     loop {
       react {
         case LoadAction(name) =>
           reply(load(name));
-        case SaveAction(name, typeNameAndValue) =>
-          save(name, typeNameAndValue);
+        case SaveAction(name, value) =>
+          save(name, value);
           reply(true);
       }
     }
 
-  }};
+  }}
   ioActor.start();
 
 }
 
 object ObjectBank {
 
-  def get(name: String): Option[(String, Any)] = {
-    default.get(name);
-  }
-
-  def getOrElse[A](name: String, defaultValue: =>A): A = {
-    default.getOrElse(name, defaultValue);
-  }
-
-  def put(name: String, typeNameAndValue: Option[(String, Any)]){
-    default.put(name, typeNameAndValue);
-  }
-
-  def put(name: String, typeName: String, value: Any){
-    default.put(name, typeName, value);
-  }
-
-  def remove(name: String){
-    default.remove(name);
-  }
-
-  def getFiles: Map[FileSet, String] = {
-    default.getFiles;
-  }
-
-  def putFiles(fileMap: Map[FileSet, String]){
-    default.putFiles(fileMap);
-  }
-
-  def putFile(file: File, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
-    default.putFile(file, fileMap);
-  }
-
-  def putFile(fileSet: FileSet, fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
-    default.putFile(fileSet, fileMap);
-  }
-
-  def putFile(name: String, fileSet: FileSet,
-    fileMap: Map[FileSet, String]): (String, Map[FileSet, String]) = {
-    default.putFile(name, fileSet, fileMap);
-  }
-
   lazy val default: ObjectBank = new ObjectBank(dirName);
 
   def dirName: String = {
-    import java.io.File;
     System.getProperty("user.home") + File.separator + ".kametools";
   }
 
-}
+  object forScala {
 
-object ob {
-
-  // for scala
-  def apply(name: String): Any = {
-    ObjectBank.get(name) match {
-      case Some((_, v)) => v;
-      case None => throw new NoSuchElementException("key: " + name);
+    def apply(name: String): AnyRef = {
+      default.get(name) match {
+        case Some(v) => v;
+        case None => throw new NoSuchElementException("key: " + name);
+      }
     }
+
+    def update(name: String, value: AnyRef){
+      default.put(name, value);
+    }
+
   }
 
-  // for scala
-  def update(name: String, value: Any){
-    ObjectBank.put(name, "Any", value);
+  object forGroovy {
+
+    def get(name: String): AnyRef = {
+      forScala.apply(name);
+    }
+
+    def put(name: String, value: AnyRef){
+      forScala.update(name, value);
+    }
+
   }
 
-  // for groovy
-  def get(name: String): Any = {
-    apply(name);
-  }
+  private def getHashCode(obj: AnyRef): Int = obj.hashCode;
 
-  // for groovy
-  def put(name: String, value: Any){
-    update(name, value);
-  }
+  private def getHashName(value: AnyRef): String = ".%02d".format(
+    getHashCode(value) % 100);
 
 }
-
