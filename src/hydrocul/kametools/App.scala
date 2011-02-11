@@ -16,6 +16,7 @@ trait App {
       exec(args, env);
     } else {
       args.head match {
+        case "--help" => HelpApp(this).main(args.tail, env);
         case _ => exec(args, env);
       }
     }
@@ -29,7 +30,7 @@ object App {
   def getApp(obj: Any){
     obj match {
       case obj: App => obj;
-      case obj => print.Print(obj);
+      case obj => print.PrintApp(obj);
     }
   }
 

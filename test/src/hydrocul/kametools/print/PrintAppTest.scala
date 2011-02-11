@@ -9,13 +9,13 @@ import hydrocul.kametest.Test;
 import hydrocul.kametools.App;
 import hydrocul.kametools.ObjectBank;
 
-object PrintTest {
+object PrintAppTest {
 
   def test(){
 
     val env = new App.StringEnv();
 
-    val app = Print("abc");
+    val app = PrintApp("abc");
     app.main(Array(), env);
 
     Test.assertEquals("", "abc\n", env.getOutput());

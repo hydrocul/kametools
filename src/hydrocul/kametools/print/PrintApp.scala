@@ -5,7 +5,7 @@ import java.io.File;
 import hydrocul.kametools.App;
 import hydrocul.kametools.ObjectBank;
 
-case class Print(value: Any) extends App {
+case class PrintApp(value: Any) extends App {
 
   override def exec(args: Array[String], env: App.Env){
 
