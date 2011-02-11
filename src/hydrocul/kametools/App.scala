@@ -6,9 +6,21 @@ import java.io.StringWriter;
 
 trait App {
 
-  def main(cmdName: String, args: Array[String], env: App.Env);
+  def exec(args: Array[String], env: App.Env);
 
-  def help(cmdName: String, env: App.Env);
+  def help(env: App.Env);
+
+  final def main(args: Array[String], env: App.Env){
+
+    if(args.isEmpty){
+      exec(args, env);
+    } else {
+      args.head match {
+        case _ => exec(args, env);
+      }
+    }
+
+  }
 
 }
 

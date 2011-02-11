@@ -16,7 +16,7 @@ object PrintTest {
     val env = new App.StringEnv();
 
     val app = Print("abc");
-    app.main("test", Array(), env);
+    app.main(Array(), env);
 
     Test.assertEquals("", "abc", env.getOutput());
 
