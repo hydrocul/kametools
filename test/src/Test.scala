@@ -9,6 +9,7 @@ object Test {
     hydrocul.kametools.ObjectBankTest.test();
     hydrocul.kametools.HelpAppTest.test();
     hydrocul.kametools.print.PrintAppTest.test();
+    hydrocul.kametools.time.NowAppTest.test();
 
     println("Success: %d / %d".format(KTest.getSuccessCount, KTest.getTotalCount));
 
