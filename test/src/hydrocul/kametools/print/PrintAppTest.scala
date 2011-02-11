@@ -1,13 +1,8 @@
 package hydrocul.kametools.print;
 
-import java.io.File;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-
 import hydrocul.kametest.Test;
 
 import hydrocul.kametools.App;
-import hydrocul.kametools.ObjectBank;
 
 object PrintAppTest {
 
