@@ -25,7 +25,7 @@ object ObjectBankTest {
     Test.assertEquals("", None,
       ObjectBank.default.getNameByValue(List(5, 6, 7)));
 
-    val name1 = ObjectBank.default.put(Some(Range(123, 125)));
+    val name1 = ObjectBank.default.put(Range(123, 125));
     Test.assertEquals("", Some(Range(123, 125)), ObjectBank.default.get(name1));
 
     Test.assertEquals("", Some(name1),

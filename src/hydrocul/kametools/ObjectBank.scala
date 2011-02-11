@@ -48,12 +48,12 @@ class ObjectBank(dirName: String){
   def getNameByValue(value: AnyRef): Option[String] = {
     val hashName = getHashName(value);
     val list = getOrElse[List[String]](hashName, Nil);
-    list.find ( s =>
+    list.find { s =>
       get(s) match {
         case Some(v) if(v==value) => true;
         case _ => false;
       }
-    );
+    }
   }
 
   def put(name: String, value: Option[AnyRef]){
@@ -71,10 +71,12 @@ class ObjectBank(dirName: String){
     if(changed){
       putRaw(name, value);
     }
-    val hashName = getHashName(value);
-    val list = getOrElse[List[String]](hashName, Nil);
-    val newList = name :: list;
-    putRaw(hashName, Some(newList));
+    value.foreach { value =>
+      val hashName = getHashName(value);
+      val list = getOrElse[List[String]](hashName, Nil);
+      val newList = name :: list;
+      putRaw(hashName, Some(newList));
+    }
   }
 
   /**
@@ -104,9 +106,12 @@ class ObjectBank(dirName: String){
       val first1 = "bcdfghjklmnpqrstvwxyz";
       val first2 = "aeiou";
       val ret = new StringBuilder();
-      ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
-      ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
-      ret.append(first1.charAt((math.random * first1.length).asInstanceOf[Int]));
+      ret.append(first1.charAt((math.random * first1.length).
+        asInstanceOf[Int]));
+      ret.append(first2.charAt((math.random * first2.length).
+        asInstanceOf[Int]));
+      ret.append(first1.charAt((math.random * first1.length).
+        asInstanceOf[Int]));
       ret.toString;
     }
 
@@ -115,8 +120,10 @@ class ObjectBank(dirName: String){
       val first1 = "bcdfghjklmnpqrstvwxyz";
       val first2 = "aeiou";
       val ret = new StringBuilder();
-      ret.append(first2.charAt((math.random * first2.length).asInstanceOf[Int]));
-      val c = first1.charAt((math.random * first1.length).asInstanceOf[Int]);
+      ret.append(first2.charAt((math.random * first2.length).
+        asInstanceOf[Int]));
+      val c = first1.charAt((math.random * first1.length).
+        asInstanceOf[Int]);
       ret.append(c);
       ret.append(c);
       ret.toString;
