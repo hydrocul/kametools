@@ -56,7 +56,7 @@ class ObjectBank(dirName: String){
         val hashName = getHashName(oldValue);
         val list = getOrElse[List[String]](hashName, Nil);
         val newList = list.filter(s => s != name);
-        putRaw(hashName, newList);
+        putRaw(hashName, Some(newList));
       }
     }
     if(changed){
@@ -65,18 +65,18 @@ class ObjectBank(dirName: String){
     val hashName = getHashName(value);
     val list = getOrElse[List[String]](hashName, Nil);
     val newList = name :: list;
-    putRaw(hashName, newList);
+    putRaw(hashName, Some(newList));
   }
 
   /**
    * returns name.
    */
   def put(value: AnyRef): String = {
-    val name = getNamesByValue(value) match {
+    val name: String = getNameByValue(value) match {
       case Some(name) => name;
       case None => "." + createRandomName;
     }
-    put(name, value);
+    put(name, Some(value));
     name;
   }
 
@@ -245,7 +245,7 @@ class ObjectBank(dirName: String){
       }
     }
 
-    def saveObject(fnameBody: String, typeName: String, value: Any){
+    def saveObject(fnameBody: String, value: Any){
       val fop = new FileOutputStream(fnameBody + ".dat");
       val oop = new ObjectOutputStream(fop);
       try {
@@ -303,7 +303,7 @@ object ObjectBank {
     }
 
     def update(name: String, value: AnyRef){
-      default.put(name, value);
+      default.put(name, Some(value));
     }
 
   }

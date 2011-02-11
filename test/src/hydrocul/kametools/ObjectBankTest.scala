@@ -8,7 +8,7 @@ object ObjectBankTest {
 
   def test(){
 
-    ObjectBank.default.put("test_1", List(3, 4, 5));
+    ObjectBank.default.put("test_1", Some(List(3, 4, 5)));
     Test.assertEquals("", Some(List(3, 4, 5)), ObjectBank.default.get("test_1"));
 
     Test.assertEquals("", None, ObjectBank.default.get("test_2"));
@@ -25,15 +25,17 @@ object ObjectBankTest {
     Test.assertEquals("", None,
       ObjectBank.default.getNameByValue(List(5, 6, 7)));
 
-    val name1 = ObjectBank.default.put(123);
-    Test.assertEquals("", Some(123), ObjectBank.default.get(name1));
+    val name1 = ObjectBank.default.put(Some(Range(123, 125)));
+    Test.assertEquals("", Some(Range(123, 125)), ObjectBank.default.get(name1));
 
     Test.assertEquals("", Some(name1),
-      ObjectBank.default.getNameByValue(123));
+      ObjectBank.default.getNameByValue(Range(123, 125)));
+
+    ObjectBank.default.put("test_1", None);
+    Test.assertEquals("", None, ObjectBank.default.get("test_1"));
 
     ObjectBank.default.remove(name1);
-    Test.assertEquals("", None,
-      ObjectBank.default.getNameByValue(123));
+    Test.assertEquals("", None, ObjectBank.default.get(name1));
 
   }
 
