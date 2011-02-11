@@ -17,12 +17,17 @@ import scala.actors.Actor.react;
 import scala.actors.Actor.reply;
 import scala.actors.DaemonActor;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import groovy.lang.{Binding => GroovyBinding};
 import groovy.lang.GroovyShell;
 
 class ObjectBank(dirName: String){
 
   import ObjectBank._;
+
+  private val log = LogFactory.getLog(this.getClass);
 
   def get(name: String): Option[AnyRef] = {
     (ioActor !? LoadAction(name)).
@@ -31,7 +36,11 @@ class ObjectBank(dirName: String){
 
   def getOrElse[A](name: String, defaultValue: =>A): A = {
     get(name) match {
-      case Some(v: A) => v;
+      case Some(v) => try {
+        v.asInstanceOf[A];
+      } catch {
+        case _ => defaultValue;
+      }
       case _ => defaultValue;
     }
   }
@@ -152,6 +161,8 @@ class ObjectBank(dirName: String){
 
   private val ioActor = new DaemonActor(){ def act(){
 
+    case class LoggedException(e: Throwable) extends Exception;
+
     def load(name: String): Option[AnyRef] = {
       val fnameBody = dirName + File.separator + name;
       try {
@@ -167,7 +178,9 @@ class ObjectBank(dirName: String){
           None;
         }
       } catch {
-        case e => e.printStackTrace(); None;
+        case LoggedException(e) => None;
+        case e => log.error("load error name=" + name, e);
+          None;
       }
     }
 
@@ -177,10 +190,16 @@ class ObjectBank(dirName: String){
 
     def loadGroovyObject(fnameBody: String): AnyRef = {
       val source = loadStringSub(fnameBody, ".groovy");
-      val binding = new GroovyBinding();
-      val shell = new GroovyShell(binding);
-      val result = shell.evaluate(source);
-      result;
+      try {
+        val binding = new GroovyBinding();
+        val shell = new GroovyShell(binding);
+        val result = shell.evaluate(source);
+        result;
+      } catch {
+        case e => log.error("groovy execution error, fname=" +
+          fnameBody + ".groovy", e);
+          throw LoggedException(e);
+      }
     }
 
     def loadStringSub(fnameBody: String, fnamePostfix: String): String = {
@@ -195,6 +214,10 @@ class ObjectBank(dirName: String){
           len = reader.read(buf2, 0, buf2.length);
         }
         buf.toString;
+      } catch {
+        case e => log.error("load error, fname=" +
+          fnameBody + fnamePostfix, e);
+          throw LoggedException(e);
       } finally {
         reader.close();
       }
@@ -206,6 +229,10 @@ class ObjectBank(dirName: String){
       try {
         val value = oip.readObject();
         value;
+      } catch {
+        case e => log.error("load error, fname=" +
+          fnameBody + ".dat", e);
+          throw LoggedException(e);
       } finally {
         oip.close();
       }
@@ -227,7 +254,9 @@ class ObjectBank(dirName: String){
           case None => ;
         }
       } catch {
-        case e => e.printStackTrace();
+        case LoggedException(e) => None;
+        case e => log.error("save error name=" + name, e);
+          None;
       }
     }
 
@@ -240,6 +269,10 @@ class ObjectBank(dirName: String){
       val writer = new OutputStreamWriter(fop);
       try {
         writer.write(str);
+      } catch {
+        case e => log.error("save error, fname=" +
+          fnameBody + fnamePostfix, e);
+          throw LoggedException(e);
       } finally {
         writer.close();
       }
@@ -250,6 +283,10 @@ class ObjectBank(dirName: String){
       val oop = new ObjectOutputStream(fop);
       try {
         oop.writeObject(value);
+      } catch {
+        case e => log.error("save error, fname=" +
+          fnameBody + ".dat", e);
+          throw LoggedException(e);
       } finally {
         oop.close();
       }
