@@ -78,6 +78,10 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
 object FileSet {
 
+  def apply(file: File): FileSet = {
+    OneFileSet(file);
+  }
+
   def apply(files: List[File]): FileSet = {
     if(files.isEmpty){
       empty;

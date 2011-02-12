@@ -28,7 +28,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     val nextApp: Option[App] = if(args.isEmpty){
       None;
     } else {
-      (args(0), (if(args.length >= 2) Some(args(1) else None))) match {
+      (args(0), (if(args.length >= 2) Some(args(1)) else None)) match {
         case ("-T", Some(format)) =>
           Some(LsApp(fileSet, count, format, lineFormat));
         case (o, _) if(("-T" :: Nil).contains(o)) =>

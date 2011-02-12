@@ -5,6 +5,7 @@ object Test {
 
   def main(args: Array[String]){
 
+    KTest.test();
     hydrocul.kametools.SampleTest.test();
     hydrocul.kametools.ObjectBankTest.test();
     hydrocul.kametools.FileSetTest.test();
