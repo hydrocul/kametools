@@ -96,7 +96,7 @@ object FileSet {
     }
   }
 
-  def apply(srcFileSet: FileSet, depth: Int, reverse: Boolean): FileSet = {
+  def recursive(srcFileSet: FileSet, depth: Int, reverse: Boolean): FileSet = {
     LsFileSet(srcFileSet, depth, reverse, empty);
   }
 
