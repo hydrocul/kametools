@@ -12,8 +12,6 @@ import scala.collection.mutable.LazyBuilder
 
 trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
-  def name: String;
-
   def isEmpty: Boolean;
 
   def head: File;
@@ -52,8 +50,6 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
     FileSet.DirFileSet(head, reverse);
   }
 
-  override def toString = name;
-
   override def iterator: Iterator[File] = new FileSetIterator();
 
   private case class FileSetIterator() extends Iterator[File] {
@@ -73,7 +69,7 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
   override protected[this] def newBuilder: Builder[File, FileSet] = {
     new LazyBuilder[File, FileSet]{
       override def result: FileSet = {
-        FileSet.IterableFileSet.create(name, parts.toIterable.flatMap(_.toIterable));
+        FileSet.IterableFileSet.create(parts.toIterable.flatMap(_.toIterable));
       }
     }
   }
@@ -83,8 +79,6 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 object FileSet {
 
   case class EmptyFileSet() extends FileSet {
-
-    override def name = "empty";
 
     override def isEmpty = true;
 
@@ -99,8 +93,6 @@ object FileSet {
   val empty = EmptyFileSet();
 
   case class OneFileSet(file: File) extends FileSet {
-
-    override def name = file.getPath;
 
     override def isEmpty = false;
 
@@ -124,8 +116,6 @@ object FileSet {
   }
 
   case class DirFileSet(file: File, reverse: Boolean) extends FileSet {
-
-    override def name = file.getPath + "/";
 
     @transient private var _files: List[File] = null;
     private def files: List[File] = {
@@ -166,7 +156,7 @@ object FileSet {
 
     override def head = files.head;
 
-    override def tail = ListFileSet.create(name, files.tail);
+    override def tail = ListFileSet.create(files.tail);
 
     override def getChild(path: String): FileSet = {
       OneFileSet(file).getChild(path);
@@ -176,55 +166,53 @@ object FileSet {
 
   }
 
-  case class ListFileSet(override val name: String,
-    files: List[File]) extends FileSet {
+  case class ListFileSet(files: List[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = ListFileSet.create(name, files.tail);
+    override def tail = ListFileSet.create(files.tail);
 
   }
 
   object ListFileSet {
 
-    def create(name: String, files: List[File]): FileSet = {
+    def create(files: List[File]): FileSet = {
       if(files.isEmpty){
         empty;
       } else if(files.tail.isEmpty){
         OneFileSet(files.head);
       } else {
-        ListFileSet(name, files);
+        ListFileSet(files);
       }
     }
 
   }
 
-  case class IterableFileSet(override val name: String,
-    files: Iterable[File]) extends FileSet {
+  case class IterableFileSet(files: Iterable[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = IterableFileSet.create(name, files.tail);
+    override def tail = IterableFileSet.create(files.tail);
 
   }
 
   object IterableFileSet {
 
-    def create(name: String, files: Iterable[File]): FileSet = {
+    def create(files: Iterable[File]): FileSet = {
       if(files.isEmpty){
         empty;
       } else {
-        IterableFileSet(name, files);
+        IterableFileSet(files);
       }
     }
 
   }
 
-  case class ConcatFileSet(override val name: String, headSet: FileSet,
+  case class ConcatFileSet(headSet: FileSet,
     tailSet: Function0[FileSet]) extends FileSet {
 
     @transient private var _tail2: FileSet = null;
@@ -258,7 +246,7 @@ object FileSet {
 
     override def tail: FileSet = {
       if(!headSet.isEmpty){
-        ConcatFileSet(name, headSet.tail, tailSet);
+        ConcatFileSet(headSet.tail, tailSet);
       } else {
         tail2.tail;
       }
@@ -344,8 +332,7 @@ object FileSet {
     if(args.size == 1){
       firstVD;
     } else {
-      ConcatFileSet(args.mkString(" "), firstVD,
-        () => getArgFilesSub(args.tail,
+      ConcatFileSet(firstVD, () => getArgFilesSub(args.tail,
         notExistsOk, enableObjectKey, reverse));
     }
 

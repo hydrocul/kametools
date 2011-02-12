@@ -29,7 +29,7 @@ object FileSetTest {
     Test.assertEquals("", new File(srcFile, "src"), childrenFileSet.tail.head);
     Test.assertEquals("", 3, childrenFileSet.size);
 
-    val concatFileSet = FileSet.ConcatFileSet("test", srcFileSet,
+    val concatFileSet = FileSet.ConcatFileSet(srcFileSet,
       ()=>srcFileSet.getChildren(true));
 
     Test.assertEquals("", false, concatFileSet.isSingleFile);
@@ -41,8 +41,10 @@ object FileSetTest {
 
   private def test2(){
 
+/*
     val fs = FileSet.getArgFiles(Array[String](), Some("./"), false, true);
     Test.assertEquals("", false, fs.isSingleFile);
+*/
 
   }
 
