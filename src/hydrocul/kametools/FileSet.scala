@@ -69,7 +69,7 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
   override protected[this] def newBuilder: Builder[File, FileSet] = {
     new LazyBuilder[File, FileSet]{
       override def result: FileSet = {
-        FileSet.IterableFileSet.create(parts.toIterable.flatMap(_.toIterable));
+        FileSet(parts.toIterable.flatMap(_.toIterable));
       }
     }
   }
@@ -96,7 +96,11 @@ object FileSet {
     }
   }
 
-  val empty = EmptyFileSet();
+  def apply(srcFileSet: FileSet, depth: Int, reverse: Boolean): FileSet = {
+    LsFileSet(srcFileSet, depth, reverse, empty);
+  }
+
+  val empty: FileSet = EmptyFileSet();
 
   private case class EmptyFileSet() extends FileSet {
 
@@ -174,7 +178,7 @@ object FileSet {
 
     override def head = files.head;
 
-    override def tail = ListFileSet.create(files.tail);
+    override def tail: FileSet = FileSet(files.tail);
 
     override def getChild(path: String): FileSet = {
       OneFileSet(file).getChild(path);
@@ -184,26 +188,27 @@ object FileSet {
 
   }
 
-  case class ListFileSet(files: List[File]) extends FileSet {
+  private case class ListFileSet(files: List[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = ListFileSet.create(files.tail);
+    override def tail: FileSet = FileSet(files.tail);
 
   }
 
-  case class IterableFileSet(files: Iterable[File]) extends FileSet {
+  private case class IterableFileSet(files: Iterable[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = IterableFileSet.create(files.tail);
+    override def tail: FileSet = FileSet(files.tail);
 
   }
 
+/*
   case class ConcatFileSet(headSet: FileSet,
     tailSet: Function0[FileSet]) extends FileSet {
 
@@ -245,11 +250,56 @@ object FileSet {
     }
 
   }
+*/
+
+  private case class LsFileSet(files: FileSet, depth: Int, reverseOrder: Boolean,
+    next: FileSet) extends FileSet {
+
+    override def isEmpty: Boolean = if(!files.isEmpty){
+      false;
+    } else {
+      next.isEmpty;
+    }
+
+    @transient private var _headTail: (File, FileSet) = null;
+    private def headTail: (File, FileSet) = {
+      if(_headTail==null){
+        synchronized {
+          if(_headTail==null){
+            _headTail = $headTail;
+          }
+        }
+      }
+      _headTail;
+    }
+    private def $headTail: (File, FileSet) = {
+      if(files.isEmpty){
+        (next.head, next.tail);
+      } else {
+        val f = files.head;
+        val tail = if(depth==0){
+          LsFileSet(files.tail, depth, reverseOrder, next);
+        } else {
+          LsFileSet(FileSet.DirFileSet(f, reverseOrder),
+            depth - 1, reverseOrder, LsFileSet(files.tail, depth,
+            reverseOrder, next));
+        }
+        (f, tail);
+      }
+    }
+
+    override def head: File = headTail._1;
+
+    override def tail: FileSet = headTail._2;
+
+  }
 
 
 
 
 
+
+/*
   class ParseException(msg: String) extends Exception(msg);
 
   def getArgFiles(args: Seq[String], ifEmpty: Option[String],
@@ -333,6 +383,7 @@ object FileSet {
     }
 
   }
+*/
 
   def compareFileName(name1: String, name2: String): Int = {
     name1.compareToIgnoreCase(name2);
