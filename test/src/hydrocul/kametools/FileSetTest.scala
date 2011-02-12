@@ -8,6 +8,13 @@ object FileSetTest {
 
   def test(){
 
+    test1();
+    test2();
+
+  }
+
+  private def test1(){
+
     val srcFile = new File("test").getAbsoluteFile;
     val srcFileSet = FileSet.OneFileSet(srcFile);
 
@@ -30,6 +37,12 @@ object FileSetTest {
     Test.assertEquals("", new File(srcFile, "touch"), concatFileSet.tail.head);
     Test.assertEquals("", 4, concatFileSet.size);
 
+  }
+
+  private def test2(){
+
+    val fs = FileSet.getArgFiles(Array[String](), Some("./"), false, true);
+    Test.assertEquals("", false, fs.isSingleFile);
 
   }
 
