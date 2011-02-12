@@ -78,7 +78,27 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
 object FileSet {
 
-  case class EmptyFileSet() extends FileSet {
+  def apply(files: List[File]): FileSet = {
+    if(files.isEmpty){
+      empty;
+    } else if(files.tail.isEmpty){
+      OneFileSet(files.head);
+    } else {
+      ListFileSet(files);
+    }
+  }
+
+  def apply(files: Iterable[File]): FileSet = {
+    if(files.isEmpty){
+      empty;
+    } else {
+      IterableFileSet(files);
+    }
+  }
+
+  val empty = EmptyFileSet();
+
+  private case class EmptyFileSet() extends FileSet {
 
     override def isEmpty = true;
 
@@ -89,8 +109,6 @@ object FileSet {
       "tail of empty stream");
 
   }
-
-  val empty = EmptyFileSet();
 
   case class OneFileSet(file: File) extends FileSet {
 
@@ -176,20 +194,6 @@ object FileSet {
 
   }
 
-  object ListFileSet {
-
-    def create(files: List[File]): FileSet = {
-      if(files.isEmpty){
-        empty;
-      } else if(files.tail.isEmpty){
-        OneFileSet(files.head);
-      } else {
-        ListFileSet(files);
-      }
-    }
-
-  }
-
   case class IterableFileSet(files: Iterable[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
@@ -197,18 +201,6 @@ object FileSet {
     override def head = files.head;
 
     override def tail = IterableFileSet.create(files.tail);
-
-  }
-
-  object IterableFileSet {
-
-    def create(files: Iterable[File]): FileSet = {
-      if(files.isEmpty){
-        empty;
-      } else {
-        IterableFileSet(files);
-      }
-    }
 
   }
 
@@ -253,6 +245,10 @@ object FileSet {
     }
 
   }
+
+
+
+
 
   class ParseException(msg: String) extends Exception(msg);
 
