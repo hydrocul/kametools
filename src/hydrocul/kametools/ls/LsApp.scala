@@ -31,7 +31,11 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       (args(0), (if(args.length >= 2) Some(args(1)) else None)) match {
         case ("-T", Some(format)) =>
           Some((LsApp(fileSet, count, format, lineFormat), args.drop(2)));
-        case (o, _) if(("-T" :: Nil).contains(o)) =>
+        case ("-t", Some(format)) =>
+          Some((LsApp(fileSet, count, format, lineFormat), args.drop(2)));
+        case ("-f", Some(format)) =>
+          Some((LsApp(fileSet, count, timeFormat, format), args.drop(2)));
+        case (o, _) if(("-T" :: "-t" :: "-f" :: Nil).contains(o)) =>
           throw new Exception("No argument: " + o);
         case (o, _) =>
           throw new Exception("Unknown option: " + o);
