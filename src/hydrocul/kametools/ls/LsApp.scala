@@ -25,12 +25,12 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
   override def exec(args: Array[String], env: App.Env){
 
     // 引数がある場合にそれを処理する App を取得する
-    val nextApp: Option[App] = if(args.isEmpty){
+    val nextApp: Option[(App, Array[String])] = if(args.isEmpty){
       None;
     } else {
       (args(0), (if(args.length >= 2) Some(args(1)) else None)) match {
         case ("-T", Some(format)) =>
-          Some(LsApp(fileSet, count, format, lineFormat));
+          Some((LsApp(fileSet, count, format, lineFormat), args.drop(2)));
         case (o, _) if(("-T" :: Nil).contains(o)) =>
           throw new Exception("No argument: " + o);
         case (o, _) =>
@@ -39,7 +39,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     }
 
     nextApp match {
-      case Some(app) => app.main(args, env);
+      case Some((app, args)) => app.main(args, env);
       case None => execSub(env);
     }
 
@@ -48,13 +48,13 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
   private def execSub(env: App.Env){
 
     val timeFormat2 = timeFormat.replaceAll("%", "%1\\$t");
-    val lineFormat2 = lineFormat.replaceAll("%([1-9]+)", "%\\1\\$s");
+    val lineFormat2 = lineFormat.replaceAll("%([1-9]+)", "%$1\\$s");
 
     fileSet.foreach { file =>
       val key = ObjectBank.default.put(file);
       val t = new JDate(file.lastModified);
       val ts = timeFormat2.format(t);
-      val s = lineFormat2.format(t, file, key);
+      val s = lineFormat2.format(ts, file, key);
       env.out.println(s);
     }
 

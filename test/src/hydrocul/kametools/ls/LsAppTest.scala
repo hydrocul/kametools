@@ -9,6 +9,11 @@ import hydrocul.kametools.FileSet;
 object LsAppTest {
 
   def test(){
+    test1();
+    test2();
+  }
+
+  private def test1(){
 
     val env = new App.StringEnv();
 
@@ -18,6 +23,21 @@ object LsAppTest {
 
     app.main(Array[String](), env);
 
+    Test.assertEquals("", Test.StringPattern("20[0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9]-[0-5][0-9]-[0-5][0-9] %s  \\[\\[a-z]+\\]\n".format(file.getPath)), env.getOutput());
+
+  }
+
+  private def test2(){
+
+    val env = new App.StringEnv();
+
+    val file = new File("src").getAbsoluteFile;
+    val fileSet = FileSet(file);
+    val app = LsApp(fileSet);
+
+    app.main(Array("-T", "%Y"), env);
+
+    Test.assertEquals("", Test.StringPattern("20[0-9][0-9] %s  \\[\\[a-z]+\\]\n".format(file.getPath)), env.getOutput());
 
   }
 

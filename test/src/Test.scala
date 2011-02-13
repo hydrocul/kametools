@@ -12,6 +12,7 @@ object Test {
     hydrocul.kametools.HelpAppTest.test();
     hydrocul.kametools.print.PrintAppTest.test();
     hydrocul.kametools.time.NowAppTest.test();
+    hydrocul.kametools.ls.LsAppTest.test();
 
     println("Success: %d / %d".format(KTest.getSuccessCount, KTest.getTotalCount));
 
