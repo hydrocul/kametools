@@ -93,5 +93,9 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
+  // TODO -r
+  // TODO -R ...
+  // TODO -v, --reverse
+  // TODO -l, --label
 
 }
