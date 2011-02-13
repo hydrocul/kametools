@@ -104,6 +104,10 @@ object FileSet {
     LsFileSet(srcFileSet, depth, reverse, empty);
   }
 
+  def concat(fileSet1: FileSet, fileSet2: FileSet): FileSet = {
+    ConcatFileSet(fileSet1, fileSet2);
+  }
+
   val empty: FileSet = EmptyFileSet();
 
   private case class EmptyFileSet() extends FileSet {
@@ -212,28 +216,14 @@ object FileSet {
 
   }
 
-/*
-  case class ConcatFileSet(headSet: FileSet,
-    tailSet: Function0[FileSet]) extends FileSet {
-
-    @transient private var _tail2: FileSet = null;
-    private def tail2: FileSet = {
-      if(_tail2==null){
-        synchronized {
-          if(_tail2==null){
-            _tail2 = $tail2;
-          }
-        }
-      }
-      _tail2;
-    }
-    private def $tail2 = tailSet();
+  private case class ConcatFileSet(headSet: FileSet,
+    tailSet: FileSet) extends FileSet {
 
     override def isEmpty = {
       if(!headSet.isEmpty){
         false;
       } else {
-        tail2.isEmpty;
+        tailSet.isEmpty;
       }
     }
 
@@ -241,20 +231,21 @@ object FileSet {
       if(!headSet.isEmpty){
         headSet.head;
       } else {
-        tail2.head;
+        tailSet.head;
       }
     }
 
     override def tail: FileSet = {
-      if(!headSet.isEmpty){
-        ConcatFileSet(headSet.tail, tailSet);
+      if(headSet.isEmpty){
+        tailSet.tail;
+      } else if(headSet.tail.isEmpty){
+        tailSet;
       } else {
-        tail2.tail;
+        ConcatFileSet(headSet.tail, tailSet);
       }
     }
 
   }
-*/
 
   private case class LsFileSet(files: FileSet, depth: Int, reverseOrder: Boolean,
     next: FileSet) extends FileSet {
@@ -298,19 +289,6 @@ object FileSet {
 
   }
 
-
-
-
-
-
-/*
-  class ParseException(msg: String) extends Exception(msg);
-
-  def getArgFiles(args: Seq[String], ifEmpty: Option[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean): FileSet = {
-    getArgFiles(args, ifEmpty, notExistsOk, enableObjectKey, false);
-  }
-
   def getArgFiles(args: Seq[String], ifEmpty: Option[String],
     notExistsOk: Boolean, enableObjectKey: Boolean,
     reverse: Boolean): FileSet = {
@@ -325,7 +303,6 @@ object FileSet {
     } else {
       // 引数がある場合
       getArgFilesSub(args, notExistsOk, enableObjectKey, reverse);
-
     }
   }
 
@@ -363,14 +340,21 @@ object FileSet {
             case (false, Some(tail)) => OneFileSet(file).getChild(tail);
           }
         }
-      case Some((_, f)) =>
+      case Some(f: FileSet) =>
         if(file.exists){
-          throw new ParseException("duplicated: " + head);
+          throw new Exception("duplicated: " + head);
         } else {
-          val d: FileSet = f match {
-            case f: File => OneFileSet(f.getCanonicalFile);
-            case d: FileSet => d;
+          (list, tail) match {
+            case (true, _) => f.getChildren(reverse);
+            case (false, None) => f;
+            case (false, Some(tail)) => f.getChild(tail);
           }
+        }
+      case Some(f: File) =>
+        if(file.exists){
+          throw new Exception("duplicated: " + head);
+        } else {
+          val d: FileSet = OneFileSet(f.getCanonicalFile);
           (list, tail) match {
             case (true, _) => d.getChildren(reverse);
             case (false, None) => d;
@@ -382,12 +366,11 @@ object FileSet {
     if(args.size == 1){
       firstVD;
     } else {
-      ConcatFileSet(firstVD, () => getArgFilesSub(args.tail,
+      ConcatFileSet(firstVD, getArgFilesSub(args.tail,
         notExistsOk, enableObjectKey, reverse));
     }
 
   }
-*/
 
   def compareFileName(name1: String, name2: String): Int = {
     name1.compareToIgnoreCase(name2);
