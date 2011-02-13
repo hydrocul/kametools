@@ -30,8 +30,12 @@ class ObjectBank(dirName: String){
   private val log = LogFactory.getLog(this.getClass);
 
   def get(name: String): Option[AnyRef] = {
-    (ioActor !? LoadAction(name)).
+    val ret = (ioActor !? LoadAction(name)).
       asInstanceOf[Option[AnyRef]];
+    ret match {
+      case None if(!name.startsWith(".")) => get("." + name);
+      case _ => ret;
+    }
   }
 
   def getOrElse[A](name: String, defaultValue: =>A): A = {
@@ -48,11 +52,15 @@ class ObjectBank(dirName: String){
   def getNameByValue(value: AnyRef): Option[String] = {
     val hashName = getHashName(value);
     val list = getOrElse[List[String]](hashName, Nil);
-    list.find { s =>
+    val name: Option[String] = list.find { s =>
       get(s) match {
         case Some(v) if(v==value) => true;
         case _ => false;
       }
+    }
+    name match {
+      case Some(name) if(name.startsWith(".")) => Some(name.substring(1));
+      case _ => name;
     }
   }
 
@@ -88,7 +96,7 @@ class ObjectBank(dirName: String){
       case None => "." + createRandomName;
     }
     put(name, Some(value));
-    name;
+    if(name.startsWith(".")) name.substring(1) else name;
   }
 
   private def putRaw(name: String, value: Option[AnyRef]){
@@ -97,6 +105,7 @@ class ObjectBank(dirName: String){
 
   def remove(name: String){
     put(name, None);
+    if(!name.startsWith(".")) put("." + name, None);
   }
 
   private def createRandomName: String = {
@@ -179,8 +188,6 @@ class ObjectBank(dirName: String){
           Some(loadGroovyObject(fnameBody));
         } else if((new File(fnameBody + ".dat")).exists){
           Some(loadObject(fnameBody));
-        } else if(!name.startsWith(".")){
-          load("." + name);
         } else {
           None;
         }

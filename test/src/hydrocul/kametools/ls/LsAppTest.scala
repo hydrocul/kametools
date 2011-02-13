@@ -23,7 +23,7 @@ object LsAppTest {
 
     app.main(Array[String](), env);
 
-    Test.assertEquals("", Test.StringPattern("20[0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9]-[0-5][0-9]-[0-5][0-9] %s  \\[\\[a-z]+\\]\n".format(file.getPath)), env.getOutput());
+    Test.assertEquals("", Test.StringPattern("20[0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9]-[0-5][0-9]-[0-5][0-9] %s  \\[[a-z]+\\]\n".format(file.getPath)), env.getOutput());
 
   }
 
@@ -37,7 +37,7 @@ object LsAppTest {
 
     app.main(Array("-T", "%Y"), env);
 
-    Test.assertEquals("", Test.StringPattern("20[0-9][0-9] %s  \\[\\[a-z]+\\]\n".format(file.getPath)), env.getOutput());
+    Test.assertEquals("", Test.StringPattern("20[0-9][0-9] %s  \\[[a-z]+\\]\n".format(file.getPath)), env.getOutput());
 
   }
 
