@@ -8,9 +8,9 @@ trait App {
 
   def exec(env: App.Env);
 
-  def next(args: Array[String]): App;
+  def next(arg: String): App;
 
-  protected def nextCommonly(args: Array[String]): Option[App] = {
+  protected def nextCommonly(arg: String): Option[App] = {
     None; // TODO
   }
 
@@ -37,8 +37,8 @@ object App {
       // TODO
     }
 
-    override def next(args: Array[String]): App = {
-      // TODO
+    override def next(arg: String): App = {
+      throw new Exception(); // TODO
     }
 
     override def help(env: App.Env){
