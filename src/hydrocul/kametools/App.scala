@@ -6,27 +6,21 @@ import java.io.StringWriter;
 
 trait App {
 
-  def exec(args: Array[String], env: App.Env);
+  def exec(env: App.Env);
+
+  def next(args: Array[String]): App;
+
+  protected def nextCommonly(args: Array[String]): Option[App] = {
+    None; // TODO
+  }
 
   def help(env: App.Env);
-
-  final def main(args: Array[String], env: App.Env){
-
-    if(args.isEmpty){
-      exec(args, env);
-    } else {
-      args.head match {
-        case "--help" => HelpApp(this).main(args.tail, env);
-        case _ => exec(args, env);
-      }
-    }
-
-  }
 
 }
 
 object App {
 
+/*
   def apply(obj: Any): App = {
     obj match {
       case obj: App => obj;
@@ -35,22 +29,16 @@ object App {
       case obj => print.PrintApp(obj);
     }
   }
+*/
 
   object StartApp extends App {
 
-    override def exec(args: Array[String], env: App.Env){
+    override def exec(env: App.Env){
+      // TODO
+    }
 
-      if(args.isEmpty){
-        help(env);
-        return;
-      }
-
-      val t = getNextApp(args);
-      val nextApp: App = t._1;
-      val nextArgs: Array[String] = t._2;
-
-      nextApp.main(nextArgs, env);
-
+    override def next(args: Array[String]): App = {
+      // TODO
     }
 
     override def help(env: App.Env){
@@ -59,6 +47,7 @@ object App {
 
   }
 
+/*
   private def getNextApp(args: Array[String]): (Any, Array[String]) = {
 
     val arg = args.head;
@@ -89,6 +78,7 @@ object App {
     }
 
   }
+*/
 
   trait Env {
 
