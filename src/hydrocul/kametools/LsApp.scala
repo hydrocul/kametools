@@ -14,41 +14,11 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-/*
 case class LsApp(fileSet: FileSet, count: Int = 50,
   timeFormat: String = "%Y-%m-%d-%H-%M-%S",
   lineFormat: String = "%1 %2  [%3]") extends App {
 
-  override def exec(args: Array[String], env: App.Env){
-
-    // 引数がある場合にそれを処理する App を取得する
-    val nextApp: Option[(App, Array[String])] = if(args.isEmpty){
-      None;
-    } else {
-      (args(0), (if(args.length >= 2) Some(args(1)) else None)) match {
-        case ("-t", Some(format)) =>
-          Some((LsApp(fileSet, count, format, lineFormat), args.drop(2)));
-        case ("-f", Some(format)) =>
-          Some((LsApp(fileSet, count, timeFormat, format), args.drop(2)));
-        case ("-c", Some(count)) =>
-          Some((LsApp(fileSet, count.toInt, timeFormat, lineFormat), args.drop(2)));
-        case ("-a", _) =>
-          Some((LsApp(fileSet, 0, timeFormat, lineFormat), args.drop(1)));
-        case (o, _) if(("-t" :: "-f" :: "-c" :: Nil).contains(o)) =>
-          throw new Exception("No argument: " + o);
-        case (o, _) =>
-          throw new Exception("Unknown option: " + o);
-      }
-    }
-
-    nextApp match {
-      case Some((app, args)) => app.main(args, env);
-      case None => execSub(env);
-    }
-
-  }
-
-  private def execSub(env: App.Env){
+  override def exec(env: App.Env){
 
     val timeFormat2 = timeFormat.replaceAll("%", "%1\\$t");
     val lineFormat2 = lineFormat.replaceAll("%([1-9]+)", "%$1\\$s");
@@ -83,32 +53,21 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
-  override def next(arg: String): App = {
-    val nextApp: Option[App] = if(args.isEmpty){
-      None;
-    } else {
-      (args(0), (if(args.length >= 2) Some(args(1)) else None)) match {
-        case ("-t", Some(format)) =>
-          Some((LsApp(fileSet, count, format, lineFormat), args.drop(2)));
-        case ("-f", Some(format)) =>
-          Some((LsApp(fileSet, count, timeFormat, format), args.drop(2)));
-        case ("-c", Some(count)) =>
-          Some((LsApp(fileSet, count.toInt, timeFormat, lineFormat), args.drop(2)));
-        case ("-a", _) =>
-          Some((LsApp(fileSet, 0, timeFormat, lineFormat), args.drop(1)));
-        case (o, _) if(("-t" :: "-f" :: "-c" :: Nil).contains(o)) =>
-          throw new Exception("No argument: " + o);
-        case (o, _) =>
-          throw new Exception("Unknown option: " + o);
-      }
-    }
+  override def next(arg: String): App = (nextCommonly(arg), arg) match {
+    case (Some(app), _) => app;
+    case (None, "-t") => App.NeedOfArgumentApp(
+      format => LsApp(fileSet, count, format, lineFormat));
+    case (None, "-f") => App.NeedOfArgumentApp(
+      format => LsApp(fileSet, count, timeFormat, format));
+    case (None, "-c") => App.NeedOfArgumentApp(
+      count => LsApp(fileSet, count.toInt, timeFormat, lineFormat));
+    case (None, "-a") => LsApp(fileSet, 0, timeFormat, lineFormat);
+    case _ => throw new Exception("Unknown option: " + arg);
   }
 
   override def help(env: App.Env){
-
     env.out.println("display fileSet");
     env.out.println("usage: ");
-
   }
 
   // TODO -r
@@ -117,4 +76,4 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
   // TODO -l, --label
 
 }
-*/
+
