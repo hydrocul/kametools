@@ -1,4 +1,4 @@
-package hydrocul.kametools.ls;
+package hydrocul.kametools;
 
 import java.io.File;
 import java.util.{ Date => JDate }
@@ -14,10 +14,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-import hydrocul.kametools.App;
-import hydrocul.kametools.FileSet;
-import hydrocul.kametools.ObjectBank;
-
+/*
 case class LsApp(fileSet: FileSet, count: Int = 50,
   timeFormat: String = "%Y-%m-%d-%H-%M-%S",
   lineFormat: String = "%1 %2  [%3]") extends App {
@@ -86,6 +83,27 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
+  override def next(arg: String): App = {
+    val nextApp: Option[App] = if(args.isEmpty){
+      None;
+    } else {
+      (args(0), (if(args.length >= 2) Some(args(1)) else None)) match {
+        case ("-t", Some(format)) =>
+          Some((LsApp(fileSet, count, format, lineFormat), args.drop(2)));
+        case ("-f", Some(format)) =>
+          Some((LsApp(fileSet, count, timeFormat, format), args.drop(2)));
+        case ("-c", Some(count)) =>
+          Some((LsApp(fileSet, count.toInt, timeFormat, lineFormat), args.drop(2)));
+        case ("-a", _) =>
+          Some((LsApp(fileSet, 0, timeFormat, lineFormat), args.drop(1)));
+        case (o, _) if(("-t" :: "-f" :: "-c" :: Nil).contains(o)) =>
+          throw new Exception("No argument: " + o);
+        case (o, _) =>
+          throw new Exception("Unknown option: " + o);
+      }
+    }
+  }
+
   override def help(env: App.Env){
 
     env.out.println("display fileSet");
@@ -99,3 +117,4 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
   // TODO -l, --label
 
 }
+*/

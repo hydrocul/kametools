@@ -55,7 +55,21 @@ object App {
     }
 
     override def help(env: App.Env){
-      // TODO
+      // TODO help
+    }
+
+  }
+
+  case class NeedOfArgumentApp(p: String => App) extends App {
+
+    override def exec(env: App.Env){
+      throw new Exception("need argument");
+    }
+
+    override def next(arg: String): App = p(arg);
+
+    override def help(env: App.Env){
+      // TODO help
     }
 
   }
