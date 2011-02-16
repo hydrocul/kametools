@@ -8,7 +8,9 @@ trait App {
 
   def exec(env: App.Env);
 
-  def next(arg: String): App;
+  def next(arg: String): App = {
+    throw new Exception("Unknown command: " + arg);
+  }
 
   protected def nextCommonly(arg: String): Option[App] = {
     None; // TODO
@@ -20,16 +22,14 @@ trait App {
 
 object App {
 
-/*
   def apply(obj: Any): App = {
     obj match {
       case obj: App => obj;
-      case obj: FileSet => ls.LsApp(obj);
-      case obj: File => ls.LsApp(FileSet(obj));
-      case obj => print.PrintApp(obj);
+//      case obj: FileSet => ls.LsApp(obj);
+//      case obj: File => ls.LsApp(FileSet(obj));
+      case obj => PrintApp(obj);
     }
   }
-*/
 
   object StartApp extends App {
 
@@ -38,7 +38,20 @@ object App {
     }
 
     override def next(arg: String): App = {
-      throw new Exception(); // TODO
+      val c = nextCommonly(arg);
+      if(c.isDefined){
+        c.get;
+      } else if(arg.startsWith("/") || arg.startsWith("./") || arg.startsWith("../")){
+        val file = (new File(arg)).getAbsoluteFile;
+        App.apply(file);
+      } else {
+        val o = ObjectBank.default.get(arg);
+        if(o.isDefined){
+          App.apply(o.get);
+        } else {
+          super.next(arg);
+        }
+      }
     }
 
     override def help(env: App.Env){
@@ -46,39 +59,6 @@ object App {
     }
 
   }
-
-/*
-  private def getNextApp(args: Array[String]): (Any, Array[String]) = {
-
-    val arg = args.head;
-
-    if(arg.startsWith("http://") || arg.startsWith("https://")){
-      throw new Exception("TODO: handling url");
-    } else {
-
-      val file = (new File(arg)).getCanonicalFile;
-
-      ObjectBank.default.get(arg) match {
-        case None =>
-          if(file.exists){
-            Some(file);
-          } else {
-            None;
-          }
-        case Some(f) =>
-          if(file.exists){
-            throw new Exception("duplicated: " + arg);
-          } else {
-            Some(f);
-          }
-      }
-
-      作りかけ
-
-    }
-
-  }
-*/
 
   trait Env {
 

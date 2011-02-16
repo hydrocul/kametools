@@ -1,8 +1,6 @@
-package hydrocul.kametools.print;
+package hydrocul.kametools;
 
 import hydrocul.kametest.Test;
-
-import hydrocul.kametools.App;
 
 object PrintAppTest {
 
@@ -11,7 +9,7 @@ object PrintAppTest {
     val env = new App.StringEnv();
 
     val app = PrintApp("abc");
-    app.main(Array(), env);
+    app.exec(env);
 
     Test.assertEquals("", "abc\n", env.getOutput());
 
