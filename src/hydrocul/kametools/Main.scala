@@ -28,7 +28,9 @@ object Main {
     System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "warn");
 
     val env = new App.StandardEnv();
-    App.StartApp.main(args, env);
+
+    args.foldLeft[App](App.StartApp)((app: App, arg: String) => app.next(arg)).
+      exec(env);
 
   }
 

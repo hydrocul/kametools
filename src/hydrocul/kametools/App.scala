@@ -23,8 +23,8 @@ object App {
   def apply(obj: Any): App = {
     obj match {
       case obj: App => obj;
-//      case obj: FileSet => ls.LsApp(obj);
-//      case obj: File => ls.LsApp(FileSet(obj));
+      case obj: FileSet => LsApp(obj);
+      case obj: File => LsApp(FileSet(obj));
       case obj => PrintApp(obj);
     }
   }
@@ -32,14 +32,15 @@ object App {
   object StartApp extends App {
 
     override def exec(env: App.Env){
-      // TODO
+      env.out.println("no argument"); // TODO
     }
 
     override def next(arg: String): App = {
       val c = nextCommonly(arg);
       if(c.isDefined){
         c.get;
-      } else if(arg.startsWith("/") || arg.startsWith("./") || arg.startsWith("../")){
+      } else if(arg.startsWith("/") || arg.startsWith("./") ||
+        arg.startsWith("../")){
         val file = (new File(arg)).getAbsoluteFile;
         App.apply(file);
       } else {
