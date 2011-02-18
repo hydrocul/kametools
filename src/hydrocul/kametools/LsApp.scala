@@ -65,10 +65,12 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     case _ => throw new Exception("Unknown option: " + arg);
   }
 
+/*
   override def help(env: App.Env){
     env.out.println("display fileSet");
     env.out.println("usage: ");
   }
+*/
 
   // TODO -r
   // TODO -R ...
