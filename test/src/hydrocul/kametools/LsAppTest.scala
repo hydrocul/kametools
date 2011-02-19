@@ -12,6 +12,8 @@ object LsAppTest {
     test3();
     test4();
     test5();
+    test6();
+    test7();
   }
 
   private def test1(){
@@ -88,6 +90,38 @@ object LsAppTest {
 
     Test.assertEquals("", Test.StringPattern(
       "src\nshow more: \\[[a-z]+\\]\n"), env.getOutput());
+
+  }
+
+  private def test6(){
+
+    val env = new App.StringEnv();
+
+    val file1 = new File("src").getAbsoluteFile;
+    val fileSet = FileSet(file1);
+    val app = LsApp(fileSet).next("-r1").next("-f").next("%4");
+
+    app.exec(env);
+
+    Test.assertEquals("", Test.StringPattern(
+      "src\n" +
+      "hydrocul\n"), env.getOutput());
+
+  }
+
+  private def test7(){
+
+    val env = new App.StringEnv();
+
+    val file1 = new File("src").getAbsoluteFile;
+    val fileSet = FileSet(file1);
+    val app = LsApp(fileSet).next("-r1-2").next("-f").next("%4");
+
+    app.exec(env);
+
+    Test.assertEquals("", Test.StringPattern(
+      "hydrocul\n" +
+      "kametools\n"), env.getOutput());
 
   }
 

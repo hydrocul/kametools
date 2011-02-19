@@ -62,14 +62,33 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     case (None, "-c") => App.NeedOfArgumentApp(
       count => LsApp(fileSet, count.toInt, timeFormat, lineFormat));
     case (None, "-a") => LsApp(fileSet, 0, timeFormat, lineFormat);
-    case (None, "-r") => LsApp(fileSet.reverse,
+    case (None, "-r") => LsApp(FileSet.
+      recursive(fileSet, 0, -1, false),
+      count, timeFormat, lineFormat);
+    case (None, LsApp.OptionRPattern1(d)) => LsApp(FileSet.
+      recursive(fileSet, 0, d.toInt, false),
+      count, timeFormat, lineFormat);
+    case (None, LsApp.OptionRPattern2(d1, d2)) => LsApp(FileSet.
+      recursive(fileSet, d1.toInt, d2.toInt, false),
+      count, timeFormat, lineFormat);
+    case (None, LsApp.OptionRPattern3(d1)) => LsApp(FileSet.
+      recursive(fileSet, d1.toInt, -1, false),
       count, timeFormat, lineFormat);
     case _ => throw new Exception("Unknown option: " + arg);
   }
 
-  // TODO -R ...
   // TODO -v, --reverse
   // TODO -l, --label
+
+}
+
+object LsApp {
+
+  private val OptionRPattern1 = "-r-?(\\d+)".r;
+
+  private val OptionRPattern2 = "-r(\\d+)-(\\d+)".r;
+
+  private val OptionRPattern3 = "-r(\\d+)-".r;
 
 }
 
