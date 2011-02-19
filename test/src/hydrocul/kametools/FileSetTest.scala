@@ -30,26 +30,15 @@ object FileSetTest {
     Test.assertEquals("", new File(srcFile, "src"), childrenFileSet.tail.head);
     Test.assertEquals("", 3, childrenFileSet.size);
 
-/*
-    val concatFileSet = FileSet.ConcatFileSet(srcFileSet,
-      ()=>srcFileSet.getChildren(true));
+    val concatFileSet = FileSet.concat(srcFileSet,
+      srcFileSet.getChildren(true));
 
     Test.assertEquals("", false, concatFileSet.isSingleFile);
     Test.assertEquals("", srcFile, concatFileSet.head);
     Test.assertEquals("", new File(srcFile, "touch"), concatFileSet.tail.head);
     Test.assertEquals("", 4, concatFileSet.size);
-*/
 
   }
-
-/*
-  private def test2(){
-
-    val fs = FileSet.getArgFiles(Array[String](), Some("./"), false, true);
-    Test.assertEquals("", false, fs.isSingleFile);
-
-  }
-*/
 
   private def test2(){
 
@@ -73,21 +62,27 @@ object FileSetTest {
     val fileSet2 = FileSet(srcFile1 :: srcFile2 :: Nil);
 
     {
-      val result = FileSet.recursive(fileSet2, 0, false).
+      val result = FileSet.recursive(fileSet2, 0, 0, false).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "src test", result);
     }
 
     {
-      val result = FileSet.recursive(fileSet2, 1, false).
+      val result = FileSet.recursive(fileSet2, 0, 1, false).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "src hydrocul test class src touch", result);
     }
 
     {
-      val result = FileSet.recursive(fileSet2, 1, true).
+      val result = FileSet.recursive(fileSet2, 0, 1, true).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "src hydrocul test touch src class", result);
+    }
+
+    {
+      val result = FileSet.recursive(fileSet2, 1, 1, true).
+        map(_.getName).mkString(" ");
+      Test.assertEquals("", "hydrocul touch src class", result);
     }
 
   }

@@ -102,8 +102,9 @@ object FileSet {
     }
   }
 
-  def recursive(srcFileSet: FileSet, depth: Int, reverseFlag: Boolean): FileSet = {
-    LsFileSet(srcFileSet, depth, reverseFlag);
+  def recursive(srcFileSet: FileSet, depthStart: Int, depthEnd: Int,
+    reverseFlag: Boolean): FileSet = {
+    LsFileSet(srcFileSet, depthStart, depthEnd, reverseFlag);
   }
 
   def concat(fileSet1: FileSet, fileSet2: FileSet): FileSet = {
@@ -261,13 +262,13 @@ object FileSet {
 
   }
 
-  private case class LsFileSet(files: FileSet, depth: Int,
+  private case class LsFileSet(files: FileSet, depthStart: Int, depthEnd: Int,
     reverseFlag: Boolean) extends FileSet {
 
-    override def isEmpty: Boolean = files.isEmpty;
+    override def isEmpty: Boolean = !headTail.isDefined;
 
-    @transient private var _headTail: (File, FileSet) = null;
-    private def headTail: (File, FileSet) = {
+    @transient private var _headTail: Option[(File, FileSet)] = null;
+    private def headTail: Option[(File, FileSet)] = {
       if(_headTail==null){
         synchronized {
           if(_headTail==null){
@@ -277,22 +278,40 @@ object FileSet {
       }
       _headTail;
     }
-    private def $headTail: (File, FileSet) = {
-      val f = files.head;
-      val tail = if(depth==0){
-        LsFileSet(files.tail, depth, reverseFlag);
+    private def $headTail: Option[(File, FileSet)] = {
+      if(files.isEmpty){
+        None;
       } else {
-        ConcatFileSet(LsFileSet(DirFileSet(f, reverseFlag),
-          depth - 1, reverseFlag), LsFileSet(files.tail, depth, reverseFlag));
+        val f = files.head;
+        val t = if(depthEnd==0){
+          LsFileSet(files.tail, depthStart, depthEnd, reverseFlag);
+        } else {
+          ConcatFileSet(LsFileSet(DirFileSet(f, reverseFlag),
+            depthStart - 1, depthEnd - 1, reverseFlag),
+            LsFileSet(files.tail, depthStart, depthEnd, reverseFlag));
+        }
+        if(depthStart <= 0){
+          Some((f, t));
+        } else if(t.isEmpty){
+          None;
+        } else {
+          Some((t.head, t.tail));
+        }
       }
-      (f, tail);
     }
 
-    override def head: File = headTail._1;
+    override def head: File = headTail match {
+      case Some((h, _)) => h;
+      case None => empty.head;
+    }
 
-    override def tail: FileSet = headTail._2;
+    override def tail: FileSet = headTail match {
+      case Some((_, t)) => t;
+      case None => empty.tail;
+    }
 
-    override def reverse = LsFileSet(files.reverse, depth, !reverseFlag);
+    override def reverse = LsFileSet(files.reverse, depthStart, depthEnd,
+      !reverseFlag);
 
   }
 
