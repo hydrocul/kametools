@@ -62,17 +62,11 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     case (None, "-c") => App.NeedOfArgumentApp(
       count => LsApp(fileSet, count.toInt, timeFormat, lineFormat));
     case (None, "-a") => LsApp(fileSet, 0, timeFormat, lineFormat);
+    case (None, "-r") => LsApp(fileSet.reverse,
+      count, timeFormat, lineFormat);
     case _ => throw new Exception("Unknown option: " + arg);
   }
 
-/*
-  override def help(env: App.Env){
-    env.out.println("display fileSet");
-    env.out.println("usage: ");
-  }
-*/
-
-  // TODO -r
   // TODO -R ...
   // TODO -v, --reverse
   // TODO -l, --label

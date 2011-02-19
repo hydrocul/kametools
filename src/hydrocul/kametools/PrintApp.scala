@@ -8,11 +8,4 @@ case class PrintApp(value: Any) extends App {
     env.out.println(value.toString);
   }
 
-  override def help(env: App.Env){
-
-    env.out.println("print object");
-    env.out.println("usage: ");
-
-  }
-
 }
