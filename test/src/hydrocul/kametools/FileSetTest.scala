@@ -85,6 +85,12 @@ object FileSetTest {
       Test.assertEquals("", "hydrocul touch src class", result);
     }
 
+    {
+      val result = FileSet.recursive(fileSet2, 1, 1, true).reverse.
+        map(_.getName).mkString(" ");
+      Test.assertEquals("", "class src touch hydrocul", result);
+    }
+
   }
 
 }

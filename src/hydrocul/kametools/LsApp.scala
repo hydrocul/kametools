@@ -74,6 +74,8 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     case (None, LsApp.OptionRPattern3(d1)) => LsApp(FileSet.
       recursive(fileSet, d1.toInt, -1, false),
       count, timeFormat, lineFormat);
+    case (None, "-v") => LsApp(fileSet.reverse,
+      count, timeFormat, lineFormat);
     case _ => throw new Exception("Unknown option: " + arg);
   }
 
