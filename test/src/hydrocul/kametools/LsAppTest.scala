@@ -84,7 +84,7 @@ object LsAppTest {
     val file1 = new File("src").getAbsoluteFile;
     val file2 = new File("test").getAbsoluteFile;
     val fileSet = FileSet(file1 :: file2 :: Nil);
-    val app = LsApp(fileSet).next("-f").next("%4").next("-c").next("1");
+    val app = LsApp(fileSet).next("-f").next("%4").next("-c1");
 
     app.exec(env);
 

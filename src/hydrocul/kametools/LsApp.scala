@@ -59,8 +59,8 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       format => LsApp(fileSet, count, format, lineFormat));
     case (None, "-f") => App.NeedOfArgumentApp(
       format => LsApp(fileSet, count, timeFormat, format));
-    case (None, "-c") => App.NeedOfArgumentApp(
-      count => LsApp(fileSet, count.toInt, timeFormat, lineFormat));
+    case (None, LsApp.OptionCPattern(c)) => LsApp(fileSet,
+      c.toInt, timeFormat, lineFormat);
     case (None, "-a") => LsApp(fileSet, 0, timeFormat, lineFormat);
     case (None, "-r") => LsApp(FileSet.
       recursive(fileSet, 0, -1, false),
@@ -83,6 +83,8 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 }
 
 object LsApp {
+
+  private val OptionCPattern = "-c(\\d+)".r;
 
   private val OptionRPattern1 = "-r-?(\\d+)".r;
 
