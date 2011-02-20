@@ -104,11 +104,21 @@ object FileSet {
 
   def recursive(srcFileSet: FileSet, depthStart: Int, depthEnd: Int,
     reverseFlag: Boolean): FileSet = {
-    LsFileSet(srcFileSet, depthStart, depthEnd, reverseFlag);
+    if(depthStart <= 0 && depthEnd == 0){
+      srcFileSet;
+    } else {
+      LsFileSet(srcFileSet, depthStart, depthEnd, reverseFlag);
+    }
   }
 
   def concat(fileSet1: FileSet, fileSet2: FileSet): FileSet = {
-    ConcatFileSet(fileSet1, fileSet2);
+    if(fileSet1.isEmpty){
+      fileSet2;
+    } else if(fileSet2.isEmpty){
+      fileSet1;
+    } else {
+      ConcatFileSet(fileSet1, fileSet2);
+    }
   }
 
   val empty: FileSet = EmptyFileSet();
@@ -282,20 +292,30 @@ object FileSet {
       if(files.isEmpty){
         None;
       } else {
-        val f = files.head;
-        val t = if(depthEnd==0){
-          LsFileSet(files.tail, depthStart, depthEnd, reverseFlag);
+        val fs = if(depthEnd==0){
+          files;
         } else {
-          ConcatFileSet(LsFileSet(DirFileSet(f, reverseFlag),
-            depthStart - 1, depthEnd - 1, reverseFlag),
-            LsFileSet(files.tail, depthStart, depthEnd, reverseFlag));
+          val f = files.head;
+          if(depthStart > 0){
+            concat(recursive(DirFileSet(f, reverseFlag),
+              depthStart - 1, depthEnd - 1, reverseFlag),
+              recursive(files.tail, depthStart, depthEnd, reverseFlag));
+          } else if(reverseFlag){
+            concat(concat(recursive(DirFileSet(f, reverseFlag),
+              depthStart - 1, depthEnd - 1, reverseFlag),
+              OneFileSet(f)),
+              recursive(files.tail, depthStart, depthEnd, reverseFlag));
+          } else {
+            ConcatFileSet(OneFileSet(f),
+              ConcatFileSet(recursive(DirFileSet(f, reverseFlag),
+              depthStart - 1, depthEnd - 1, reverseFlag),
+              recursive(files.tail, depthStart, depthEnd, reverseFlag)));
+          }
         }
-        if(depthStart <= 0){
-          Some((f, t));
-        } else if(t.isEmpty){
+        if(fs.isEmpty){
           None;
         } else {
-          Some((t.head, t.tail));
+          Some((fs.head, fs.tail));
         }
       }
     }
