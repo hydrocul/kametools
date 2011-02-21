@@ -62,17 +62,17 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     case (None, LsApp.OptionCPattern(c)) => LsApp(fileSet,
       c.toInt, timeFormat, lineFormat);
     case (None, "-a") => LsApp(fileSet, 0, timeFormat, lineFormat);
-    case (None, "-r") => LsApp(FileSet.
-      recursive(fileSet, 0, -1, false),
+    case (None, "-r") => LsApp(
+      FileSet.recursive(fileSet, 0, -1, false, false),
       count, timeFormat, lineFormat);
-    case (None, LsApp.OptionRPattern1(d)) => LsApp(FileSet.
-      recursive(fileSet, 0, d.toInt, false),
+    case (None, LsApp.OptionRPattern1(d)) => LsApp(
+      FileSet.recursive(fileSet, 0, d.toInt, false, false),
       count, timeFormat, lineFormat);
-    case (None, LsApp.OptionRPattern2(d1, d2)) => LsApp(FileSet.
-      recursive(fileSet, d1.toInt, d2.toInt, false),
+    case (None, LsApp.OptionRPattern2(d1, d2)) => LsApp(
+      FileSet.recursive(fileSet, d1.toInt, d2.toInt, false, false),
       count, timeFormat, lineFormat);
-    case (None, LsApp.OptionRPattern3(d1)) => LsApp(FileSet.
-      recursive(fileSet, d1.toInt, -1, false),
+    case (None, LsApp.OptionRPattern3(d1)) => LsApp(
+      FileSet.recursive(fileSet, d1.toInt, -1, false, false),
       count, timeFormat, lineFormat);
     case (None, "-v") => LsApp(fileSet.reverse,
       count, timeFormat, lineFormat);

@@ -62,31 +62,43 @@ object FileSetTest {
     val fileSet2 = FileSet(srcFile1 :: srcFile2 :: Nil);
 
     {
-      val result = FileSet.recursive(fileSet2, 0, 0, false).
+      val result = FileSet.recursive(fileSet2, 0, 0, false, false).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "src test", result);
     }
 
     {
-      val result = FileSet.recursive(fileSet2, 0, 1, false).
+      val result = FileSet.recursive(fileSet2, 0, 1, false, false).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "src hydrocul test class src touch", result);
     }
 
     {
-      val result = FileSet.recursive(fileSet2, 0, 1, true).
+      val result = FileSet.recursive(fileSet2, 0, 1, true, false).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "src hydrocul test touch src class", result);
     }
 
     {
-      val result = FileSet.recursive(fileSet2, 1, 1, true).
+      val result = FileSet.recursive(fileSet2, 0, 1, true, true).
+        map(_.getName).mkString(" ");
+      Test.assertEquals("", "hydrocul src touch src class test", result);
+    }
+
+    {
+      val result = FileSet.recursive(fileSet2, 0, 1, false, true).
+        map(_.getName).mkString(" ");
+      Test.assertEquals("", "hydrocul src class src touch test", result);
+    }
+
+    {
+      val result = FileSet.recursive(fileSet2, 1, 1, true, false).
         map(_.getName).mkString(" ");
       Test.assertEquals("", "hydrocul touch src class", result);
     }
 
     {
-      val result = FileSet.recursive(fileSet2, 1, 1, true).reverse.
+      val result = FileSet.recursive(fileSet2, 1, 1, true, false).reverse.
         map(_.getName).mkString(" ");
       Test.assertEquals("", "class src touch hydrocul", result);
     }

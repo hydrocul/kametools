@@ -103,11 +103,11 @@ object FileSet {
   }
 
   def recursive(srcFileSet: FileSet, depthStart: Int, depthEnd: Int,
-    reverseFlag: Boolean): FileSet = {
+    reverseDirFlag: Boolean, reverseAllFlag: Boolean): FileSet = {
     if(depthStart <= 0 && depthEnd == 0){
       srcFileSet;
     } else {
-      LsFileSet(srcFileSet, depthStart, depthEnd, reverseFlag);
+      LsFileSet(srcFileSet, depthStart, depthEnd, reverseDirFlag, reverseAllFlag);
     }
   }
 
@@ -273,7 +273,7 @@ object FileSet {
   }
 
   private case class LsFileSet(files: FileSet, depthStart: Int, depthEnd: Int,
-    reverseFlag: Boolean) extends FileSet {
+    reverseDirFlag: Boolean, reverseAllFlag: Boolean) extends FileSet {
 
     override def isEmpty: Boolean = !headTail.isDefined;
 
@@ -297,19 +297,22 @@ object FileSet {
         } else {
           val f = files.head;
           if(depthStart > 0){
-            concat(recursive(DirFileSet(f, reverseFlag),
-              depthStart - 1, depthEnd - 1, reverseFlag),
-              recursive(files.tail, depthStart, depthEnd, reverseFlag));
-          } else if(reverseFlag){
-            concat(concat(recursive(DirFileSet(f, reverseFlag),
-              depthStart - 1, depthEnd - 1, reverseFlag),
+            concat(recursive(DirFileSet(f, reverseDirFlag),
+              depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
+              recursive(files.tail, depthStart, depthEnd,
+              reverseDirFlag, reverseAllFlag));
+          } else if(reverseAllFlag){
+            concat(concat(recursive(DirFileSet(f, reverseDirFlag),
+              depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
               OneFileSet(f)),
-              recursive(files.tail, depthStart, depthEnd, reverseFlag));
+              recursive(files.tail, depthStart, depthEnd,
+              reverseDirFlag, reverseAllFlag));
           } else {
             ConcatFileSet(OneFileSet(f),
-              ConcatFileSet(recursive(DirFileSet(f, reverseFlag),
-              depthStart - 1, depthEnd - 1, reverseFlag),
-              recursive(files.tail, depthStart, depthEnd, reverseFlag)));
+              ConcatFileSet(recursive(DirFileSet(f, reverseDirFlag),
+              depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
+              recursive(files.tail, depthStart, depthEnd,
+              reverseDirFlag, reverseAllFlag)));
           }
         }
         if(fs.isEmpty){
@@ -331,7 +334,7 @@ object FileSet {
     }
 
     override def reverse = LsFileSet(files.reverse, depthStart, depthEnd,
-      !reverseFlag);
+      !reverseDirFlag, !reverseAllFlag);
 
   }
 
