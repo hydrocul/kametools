@@ -19,7 +19,8 @@ trait App {
 
   protected def nextCommonly(arg: String): Option[App] = {
     arg match {
-      case "--help" => Some(App.SimpleApp((env: App.Env) => env.out.println(toString)));
+      case "--help" => Some(App.SimpleApp(env => env.out.println(toString)));
+      case "--label" => Some(App.NeedOfArgumentApp(arg => App.LabelApp(this, arg)));
       case _ => None;
     }
   }
@@ -37,7 +38,7 @@ object App {
     }
   }
 
-  object StartApp extends App {
+  object StartApp extends App with java.io.Serializable {
 
     override def exec(env: App.Env){
       env.out.println("no argument"); // TODO
@@ -78,6 +79,14 @@ object App {
     }
 
     override def next(arg: String): App = p(arg);
+
+  }
+
+  case class LabelApp(app: App, label: String) extends App {
+
+    override def exec(env: App.Env){
+      ObjectBank.default.put(label, Some(app));
+    }
 
   }
 
