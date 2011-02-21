@@ -76,7 +76,15 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       count, timeFormat, lineFormat);
     case (None, "-v") => LsApp(fileSet.reverse,
       count, timeFormat, lineFormat);
+    case (None, "-p") => App.NeedOfArgumentApp(
+      pattern => LsApp(fileSet.filter(cond(_, pattern)), count, timeFormat, lineFormat));
     case _ => throw new Exception("Unknown option: " + arg);
+  }
+
+  private def cond(file: File, pattern: String): Boolean = {
+    val name = file.getName;
+    val patterns = pattern.split(" +");
+    !patterns.exists(p => name.indexOf(p) < 0);
   }
 
 }
