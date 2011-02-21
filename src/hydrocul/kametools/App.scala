@@ -9,11 +9,19 @@ trait App {
   def exec(env: App.Env);
 
   def next(arg: String): App = {
-    throw new Exception("Unknown command: " + arg);
+    val c = nextCommonly(arg);
+    if(c.isDefined){
+      c.get;
+    } else {
+      throw new Exception("Unknown command: " + arg);
+    }
   }
 
   protected def nextCommonly(arg: String): Option[App] = {
-    None; // TODO
+    arg match {
+      case "--help" => Some(App.SimpleApp((env: App.Env) => env.out.println(toString)));
+      case _ => None;
+    }
   }
 
 }
@@ -51,6 +59,14 @@ object App {
           super.next(arg);
         }
       }
+    }
+
+  }
+
+  case class SimpleApp(p: App.Env=>Unit) extends App {
+
+    override def exec(env: App.Env){
+      p(env);
     }
 
   }

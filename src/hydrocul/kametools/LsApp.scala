@@ -79,9 +79,6 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     case _ => throw new Exception("Unknown option: " + arg);
   }
 
-  // TODO -v, --reverse
-  // TODO -l, --label
-
 }
 
 object LsApp {
