@@ -12,13 +12,13 @@ import scala.collection.mutable.LazyBuilder
 
 trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
-  def name: String;
-
   def isEmpty: Boolean;
 
   def head: File;
 
   def tail: FileSet;
+
+  def reverse: FileSet;
 
   def isSingleFile: Boolean = {
     try {
@@ -45,14 +45,12 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
    * 取得する。ディレクトリでない場合または
    * 単一のFileでない場合は、getListと同じ内容を返す。
    */
-  def getChildren(reverse: Boolean): FileSet = {
+  def getChildren(reverseFlag: Boolean): FileSet = {
     if(!isSingleFile){
       return this;
     }
-    FileSet.DirFileSet(head, reverse);
+    FileSet.DirFileSet(head, reverseFlag);
   }
-
-  override def toString = name;
 
   override def iterator: Iterator[File] = new FileSetIterator();
 
@@ -73,7 +71,7 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
   override protected[this] def newBuilder: Builder[File, FileSet] = {
     new LazyBuilder[File, FileSet]{
       override def result: FileSet = {
-        FileSet.IterableFileSet.create(name, parts.toIterable.flatMap(_.toIterable));
+        FileSet(parts.toIterable.flatMap(_.toIterable));
       }
     }
   }
@@ -82,9 +80,50 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
 
 object FileSet {
 
-  case class EmptyFileSet() extends FileSet {
+  def apply(file: File): FileSet = {
+    OneFileSet(file);
+  }
 
-    override def name = "empty";
+  def apply(files: List[File]): FileSet = {
+    if(files.isEmpty){
+      empty;
+    } else if(files.tail.isEmpty){
+      OneFileSet(files.head);
+    } else {
+      ListFileSet(files);
+    }
+  }
+
+  def apply(files: Iterable[File]): FileSet = {
+    if(files.isEmpty){
+      empty;
+    } else {
+      IterableFileSet(files);
+    }
+  }
+
+  def recursive(srcFileSet: FileSet, depthStart: Int, depthEnd: Int,
+    reverseDirFlag: Boolean, reverseAllFlag: Boolean): FileSet = {
+    if(depthStart <= 0 && depthEnd == 0){
+      srcFileSet;
+    } else {
+      LsFileSet(srcFileSet, depthStart, depthEnd, reverseDirFlag, reverseAllFlag);
+    }
+  }
+
+  def concat(fileSet1: FileSet, fileSet2: FileSet): FileSet = {
+    if(fileSet1.isEmpty){
+      fileSet2;
+    } else if(fileSet2.isEmpty){
+      fileSet1;
+    } else {
+      ConcatFileSet(fileSet1, fileSet2);
+    }
+  }
+
+  val empty: FileSet = EmptyFileSet();
+
+  private case class EmptyFileSet() extends FileSet {
 
     override def isEmpty = true;
 
@@ -94,19 +133,19 @@ object FileSet {
     override def tail = throw new UnsupportedOperationException(
       "tail of empty stream");
 
+    override def reverse = this;
+
   }
 
-  val empty = EmptyFileSet();
-
   case class OneFileSet(file: File) extends FileSet {
-
-    override def name = file.getPath;
 
     override def isEmpty = false;
 
     override def head = file;
 
     override def tail = empty;
+
+    override def reverse = this;
 
     override def getChild(path: String): FileSet = {
       if(path.endsWith("/")){
@@ -117,15 +156,13 @@ object FileSet {
       }
     }
 
-    override def getChildren(reverse: Boolean): FileSet = {
-      DirFileSet(file, reverse);
+    override def getChildren(reverseFlag: Boolean): FileSet = {
+      DirFileSet(file, reverseFlag);
     }
     
   }
 
-  case class DirFileSet(file: File, reverse: Boolean) extends FileSet {
-
-    override def name = file.getPath + "/";
+  case class DirFileSet(file: File, reverseFlag: Boolean) extends FileSet {
 
     @transient private var _files: List[File] = null;
     private def files: List[File] = {
@@ -143,7 +180,7 @@ object FileSet {
       if(l==null){
         Nil;
       } else {
-        (if(reverse){
+        (if(reverseFlag){
           l.sortWith { (a, b) =>
             compareFileName(a.getName, b.getName) > 0 }
         } else {
@@ -166,85 +203,50 @@ object FileSet {
 
     override def head = files.head;
 
-    override def tail = ListFileSet.create(name, files.tail);
+    override def tail: FileSet = FileSet(files.tail);
+
+    override def reverse = DirFileSet(file, !reverseFlag);
 
     override def getChild(path: String): FileSet = {
       OneFileSet(file).getChild(path);
     }
 
-    override def getChildren(reverse: Boolean): FileSet = this;
+    override def getChildren(reverseFlag: Boolean): FileSet = this;
 
   }
 
-  case class ListFileSet(override val name: String,
-    files: List[File]) extends FileSet {
+  private case class ListFileSet(files: List[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = ListFileSet.create(name, files.tail);
+    override def tail: FileSet = FileSet(files.tail);
+
+    override def reverse = ListFileSet(files.reverse);
 
   }
 
-  object ListFileSet {
-
-    def create(name: String, files: List[File]): FileSet = {
-      if(files.isEmpty){
-        empty;
-      } else if(files.tail.isEmpty){
-        OneFileSet(files.head);
-      } else {
-        ListFileSet(name, files);
-      }
-    }
-
-  }
-
-  case class IterableFileSet(override val name: String,
-    files: Iterable[File]) extends FileSet {
+  private case class IterableFileSet(files: Iterable[File]) extends FileSet {
 
     override def isEmpty = files.isEmpty;
 
     override def head = files.head;
 
-    override def tail = IterableFileSet.create(name, files.tail);
+    override def tail: FileSet = FileSet(files.tail);
+
+    override def reverse: FileSet = ListFileSet(files.toList.reverse);
 
   }
 
-  object IterableFileSet {
-
-    def create(name: String, files: Iterable[File]): FileSet = {
-      if(files.isEmpty){
-        empty;
-      } else {
-        IterableFileSet(name, files);
-      }
-    }
-
-  }
-
-  case class ConcatFileSet(override val name: String, headSet: FileSet,
-    tailSet: Function0[FileSet]) extends FileSet {
-
-    @transient private var _tail2: FileSet = null;
-    private def tail2: FileSet = {
-      if(_tail2==null){
-        synchronized {
-          if(_tail2==null){
-            _tail2 = $tail2;
-          }
-        }
-      }
-      _tail2;
-    }
-    private def $tail2 = tailSet();
+  private case class ConcatFileSet(headSet: FileSet,
+    tailSet: FileSet) extends FileSet {
 
     override def isEmpty = {
       if(!headSet.isEmpty){
         false;
       } else {
-        tail2.isEmpty;
+        tailSet.isEmpty;
       }
     }
 
@@ -252,102 +254,87 @@ object FileSet {
       if(!headSet.isEmpty){
         headSet.head;
       } else {
-        tail2.head;
+        tailSet.head;
       }
     }
 
     override def tail: FileSet = {
-      if(!headSet.isEmpty){
-        ConcatFileSet(name, headSet.tail, tailSet);
+      if(headSet.isEmpty){
+        tailSet.tail;
+      } else if(headSet.tail.isEmpty){
+        tailSet;
       } else {
-        tail2.tail;
+        ConcatFileSet(headSet.tail, tailSet);
       }
     }
 
+    override def reverse = ConcatFileSet(tailSet.reverse, headSet.reverse);
+
   }
 
-  class ParseException(msg: String) extends Exception(msg);
+  private case class LsFileSet(files: FileSet, depthStart: Int, depthEnd: Int,
+    reverseDirFlag: Boolean, reverseAllFlag: Boolean) extends FileSet {
 
-  def getArgFiles(args: Seq[String], ifEmpty: Option[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean): FileSet = {
-    getArgFiles(args, ifEmpty, notExistsOk, enableObjectKey, false);
-  }
+    override def isEmpty: Boolean = !headTail.isDefined;
 
-  def getArgFiles(args: Seq[String], ifEmpty: Option[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean,
-    reverse: Boolean): FileSet = {
-
-    if(args.size == 0){
-      // 引数がない場合
-      ifEmpty match {
-        case None => empty;
-        case Some(p) => getArgFilesSub(Array(p),
-          notExistsOk, enableObjectKey, reverse);
-      }
-    } else {
-      // 引数がある場合
-      getArgFilesSub(args, notExistsOk, enableObjectKey, reverse);
-
-    }
-  }
-
-  private def getArgFilesSub(args: Seq[String],
-    notExistsOk: Boolean, enableObjectKey: Boolean,
-    reverse: Boolean): FileSet = {
-
-    val a = args.head;
-    val htl = {
-      val i = a.indexOf('/');
-      if(i < 0){
-        (a, None, false);
-      } else if(i == a.length - 1){
-        (a.substring(0, i), None, true);
-      } else {
-        (a.substring(0, i), Some(a.substring(i + 1)), false);
-      }
-    }
-    val head: String = htl._1;
-    val tail: Option[String] = htl._2;
-    val list: Boolean = htl._3;
-
-    val path = if(head.length == 0) "/" else head;
-    val file = (new File(path)).getCanonicalFile;
-
-    // 最初の引数の FileSet を生成
-    val firstVD: FileSet = ObjectBank.get(head) match {
-      case None =>
-        if(!notExistsOk && !file.exists){
-          empty;
-        } else {
-          (list, tail) match {
-            case (true, _) => DirFileSet(file, reverse);
-            case (false, None) => OneFileSet(file);
-            case (false, Some(tail)) => OneFileSet(file).getChild(tail);
+    @transient private var _headTail: Option[(File, FileSet)] = null;
+    private def headTail: Option[(File, FileSet)] = {
+      if(_headTail==null){
+        synchronized {
+          if(_headTail==null){
+            _headTail = $headTail;
           }
         }
-      case Some((_, f)) =>
-        if(file.exists){
-          throw new ParseException("duplicated: " + head);
+      }
+      _headTail;
+    }
+    private def $headTail: Option[(File, FileSet)] = {
+      if(files.isEmpty){
+        None;
+      } else {
+        val fs = if(depthEnd==0){
+          files;
         } else {
-          val d: FileSet = f match {
-            case f: File => OneFileSet(f.getCanonicalFile);
-            case d: FileSet => d;
-          }
-          (list, tail) match {
-            case (true, _) => d.getChildren(reverse);
-            case (false, None) => d;
-            case (false, Some(tail)) => d.getChild(tail);
+          val f = files.head;
+          if(depthStart > 0){
+            concat(recursive(DirFileSet(f, reverseDirFlag),
+              depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
+              recursive(files.tail, depthStart, depthEnd,
+              reverseDirFlag, reverseAllFlag));
+          } else if(reverseAllFlag){
+            concat(concat(recursive(DirFileSet(f, reverseDirFlag),
+              depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
+              OneFileSet(f)),
+              recursive(files.tail, depthStart, depthEnd,
+              reverseDirFlag, reverseAllFlag));
+          } else {
+            ConcatFileSet(OneFileSet(f),
+              ConcatFileSet(recursive(DirFileSet(f, reverseDirFlag),
+              depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
+              recursive(files.tail, depthStart, depthEnd,
+              reverseDirFlag, reverseAllFlag)));
           }
         }
+        if(fs.isEmpty){
+          None;
+        } else {
+          Some((fs.head, fs.tail));
+        }
+      }
     }
 
-    if(args.size == 1){
-      firstVD;
-    } else {
-      ConcatFileSet(args.mkString(" "), firstVD,
-        () => getArgFilesSub(args.tail,
-        notExistsOk, enableObjectKey, reverse));
+    override def head: File = headTail match {
+      case Some((h, _)) => h;
+      case None => empty.head;
     }
+
+    override def tail: FileSet = headTail match {
+      case Some((_, t)) => t;
+      case None => empty.tail;
+    }
+
+    override def reverse = LsFileSet(files.reverse, depthStart, depthEnd,
+      !reverseDirFlag, !reverseAllFlag);
 
   }
 
