@@ -48,8 +48,10 @@ object App {
       val c = nextCommonly(arg);
       if(c.isDefined){
         c.get;
-      } else if(arg.startsWith("/") || arg.startsWith("./") ||
-        arg.startsWith("../")){
+      } else if(arg.startsWith("./")){
+        val file = (new File(arg.substring(2))).getAbsoluteFile;
+        App.apply(file);
+      } else if(arg.startsWith("/") || arg.startsWith("../")){
         val file = (new File(arg)).getAbsoluteFile;
         App.apply(file);
       } else {
