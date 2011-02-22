@@ -78,6 +78,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       count, timeFormat, lineFormat);
     case (None, "-p") => App.NeedOfArgumentApp(
       pattern => LsApp(fileSet.filter(cond(_, pattern)), count, timeFormat, lineFormat));
+    case (None, "-o") => OpenApp(fileSet);
     case _ => throw new Exception("Unknown option: " + arg);
   }
 

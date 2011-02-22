@@ -6,7 +6,9 @@ import java.io.StringWriter;
 
 trait App {
 
-  def exec(env: App.Env);
+  def exec(env: App.Env){
+    App.HelpApp(this).exec(env);
+  }
 
   def next(arg: String): App = {
     val c = nextCommonly(arg);
@@ -19,7 +21,7 @@ trait App {
 
   protected def nextCommonly(arg: String): Option[App] = {
     arg match {
-      case "--help" => Some(App.SimpleApp(env => env.out.println(toString)));
+      case "--help" => Some(App.HelpApp(this));
       case "--label" => Some(App.NeedOfArgumentApp(arg => App.LabelApp(this, arg)));
       case _ => None;
     }
@@ -88,6 +90,14 @@ object App {
 
     override def exec(env: App.Env){
       ObjectBank.default.put(label, Some(app));
+    }
+
+  }
+
+  case class HelpApp(app: App) extends App {
+
+    override def exec(env: App.Env){
+      env.out.println(app.toString);
     }
 
   }
