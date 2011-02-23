@@ -1,6 +1,7 @@
 package hydrocul.kametools;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import hydrocul.kametest.Test;
 
@@ -29,7 +30,7 @@ object LsAppTest {
 
     Test.assertEquals("", Test.StringPattern(
       ("20[0-9][0-9]-[01][0-9]-[0-3][0-9]-[0-2][0-9]-[0-5][0-9]-[0-5][0-9]" +
-      " %s  \\[[a-z]+\\]\n").format(file.getPath)), env.getOutput());
+      " %s  \\[[a-z]+\\]\n").format(Pattern.quote(file.getPath))), env.getOutput());
 
   }
 
