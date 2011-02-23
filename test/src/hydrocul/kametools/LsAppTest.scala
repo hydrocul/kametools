@@ -45,7 +45,8 @@ object LsAppTest {
     app.exec(env);
 
     Test.assertEquals("", Test.StringPattern(
-      "20[0-9][0-9] %s  \\[[a-z]+\\]\n".format(file.getPath)), env.getOutput());
+      "20[0-9][0-9] %s  \\[[a-z]+\\]\n".format(Pattern.quote(file.getPath))),
+      env.getOutput());
 
   }
 
@@ -60,7 +61,7 @@ object LsAppTest {
     app.exec(env);
 
     Test.assertEquals("", Test.StringPattern(
-      "-- %s --\n".format(file.getPath)), env.getOutput());
+      "-- %s --\n".format(Pattern.quote(file.getPath))), env.getOutput());
 
   }
 
