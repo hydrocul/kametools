@@ -2,6 +2,6 @@ class/
 touch/
 tmp/
 lib/
-build/
+dist/
 scaladoc/
 *.tmp

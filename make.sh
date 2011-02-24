@@ -7,35 +7,17 @@ fi
 
 . buildlib.tmp
 
-
-
 case $1 in
 ################################
 compile)
 ################################
-buildlib_mkdir_lib
-if [ $? -ne 0 ] ; then
-  buildlib_dl_scalastm
-  buildlib_dl_commons_cli
-  buildlib_dl_kameutil
-  buildlib_dl_si4j
-  buildlib_dl_groovy
-  buildlib_dl_htmlunit
-fi
+buildlib_dl_commons_cli
+buildlib_dl_kameutil
+buildlib_dl_si4j
+buildlib_dl_groovy
+buildlib_dl_htmlunit
 
-buildlib_compile
-
-if [ $? -ne 0 ] ; then
-exit 1
-fi
-
-. make.sh test
-
-if [ $? -ne 0 ] ; then
-exit 1
-fi
-
-. make.sh build
+buildlib_compile hydrocul-kametools.jar
 
 ;;
 ################################
@@ -47,8 +29,7 @@ buildlib_test
 ################################
 build)
 ################################
-echo "build build/hydrocul-kametools.jar"
-buildlib_build_jar hydrocul-kametools.jar >/dev/null
+buildlib_build_jar hydrocul-kametools.jar
 
 ;;
 ################################
@@ -58,9 +39,17 @@ buildlib_scaladoc
 
 ;;
 ################################
+clean)
+################################
+buildlib_clean
+
+;;
+################################
 *)
 ################################
-echo "Usage: ./make.sh {compile|test|build|scaladoc}"
+echo "Usage: ./make.sh [compile|test|build|scaladoc|clean]"
+echo "Default action is compile."
+. make.sh compile
 
 ;;
 ################################
