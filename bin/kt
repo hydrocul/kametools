@@ -14,4 +14,9 @@ if [ `uname` = "Darwin" ] ; then
   KT_JAVA_OPTS="-Dfile.encoding=UTF-8"
 fi
 
-java -Dkt.platform= $KT_JAVA_OPTS -cp "$KT_HOME/build/hydrocul-kametools.jar:$KT_HOME/lib/*:$SCALA_HOME/lib/*" hydrocul.kametools.Main "$@"
+KT_JAVA_PATH_SEP=':'
+if [ "$OSTYPE" = cygwin ] ; then
+  KT_JAVA_PATH_SEP=';'
+fi
+
+java -Dkt.platform= $KT_JAVA_OPTS -cp "$KT_HOME/build/hydrocul-kametools.jar$KT_JAVA_PATH_SEP$KT_HOME/lib/*$KT_JAVA_PATH_SEP$SCALA_HOME/lib/*" hydrocul.kametools.Main "$@"
