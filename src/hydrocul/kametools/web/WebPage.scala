@@ -8,6 +8,8 @@ trait WebPage {
 
   def getContent: String;
 
-  def useRelatedObject(ob: ObjectBank): WebPage;
+  def useObjectBank(ob: ObjectBank): WebPage;
+
+  def useObjectBank: WebPage = useObjectBank(ObjectBank.default);
 
 }

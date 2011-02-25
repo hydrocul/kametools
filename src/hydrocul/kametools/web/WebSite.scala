@@ -16,7 +16,7 @@ trait WebSite {
 
     override def getContent = html.asText;
 
-    override def useRelatedObject(ob: ObjectBank): WebPage = this;
+    override def useObjectBank(ob: ObjectBank): WebPage = this;
 
   }
 

@@ -32,10 +32,11 @@ case class HtmlUnitBrowser(url: String, printXml: Boolean) extends App {
           env.out.println(html.asXml);
       }
     } else {
-      val page = html match {
+      val page: WebPage = html match {
         case html: HtmlPage =>
           ws.createPage(html);
       }
+      val page2 = page.useObjectBank;
       env.out.println(page.getTitle);
       env.out.println(page.getContent);
     }
