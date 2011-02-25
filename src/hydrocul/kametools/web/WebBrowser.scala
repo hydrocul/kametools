@@ -1,6 +1,7 @@
 package hydrocul.kametools.web;
 
 import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.ThreadedRefreshHandler;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebConnection;
 import com.gargoylesoftware.htmlunit.WebResponse;
@@ -12,6 +13,12 @@ import com.gargoylesoftware.htmlunit.util.WebResponseWrapper;
 class WebBrowser {
 
   private val ua = new WebClient();
+  ua.setRefreshHandler(new ThreadedRefreshHandler(){
+    override def handleRefresh(page: Page, url: java.net.URL, requestedWait: Int){
+      println(url);
+      super.handleRefresh(page, url, requestedWait);
+    }
+  });
 
   def open(url: String): WebPage = {
 
