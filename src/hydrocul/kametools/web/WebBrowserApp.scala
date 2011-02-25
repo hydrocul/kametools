@@ -12,33 +12,19 @@ import com.gargoylesoftware.htmlunit.util.WebResponseWrapper;
 import hydrocul.kametools.App;
 import hydrocul.kametools.ObjectBank;
 
-case class HtmlUnitBrowser(url: String, printXml: Boolean) extends App {
+case class WebBrowserApp(url: String, printXml: Boolean) extends App {
 
   override def exec(env: App.Env){
 
-    val ua = new WebClient();
+    val browser = new WebBrowser();
 
-    val ws = WebSite.list.find(_.urlMatch(url)).get;
+    val page = browser.open(url);
 
-    ua.setJavaScriptEnabled(ws.isJavaScriptEnabled);
-
-    val html: Page = ua.getPage(url);
-    if(ws.isJavaScriptEnabled){
-      ua.waitForBackgroundJavaScript(1000);
-    }
     if(printXml){
-      val page = html match {
-        case html: HtmlPage =>
-          env.out.println(html.asXml);
-      }
+      env.out.println(page.getXmlSource);
     } else {
-      val page: WebPage = html match {
-        case html: HtmlPage =>
-          ws.createPage(html);
-      }
       val page2 = page.useObjectBank;
-      env.out.println(page.getTitle);
-      env.out.println(page.getContent);
+      env.out.println(page2.getContent);
     }
 
   }

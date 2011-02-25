@@ -16,6 +16,8 @@ trait WebSite {
 
     override def getContent = html.asText;
 
+    override def getXmlSource = html.asXml;
+
     override def useObjectBank(ob: ObjectBank): WebPage = this;
 
   }

@@ -51,7 +51,7 @@ object App {
       if(c.isDefined){
         c.get;
       } else if(arg.startsWith("http://") || arg.startsWith("https://")){
-        web.HtmlUnitBrowser(arg, false);
+        web.WebBrowserApp(arg, false);
       } else if(arg.startsWith("./")){
         val file = (new File(arg.substring(2))).getAbsoluteFile;
         App.apply(file);

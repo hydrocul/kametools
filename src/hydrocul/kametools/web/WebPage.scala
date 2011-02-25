@@ -8,6 +8,8 @@ trait WebPage {
 
   def getContent: String;
 
+  def getXmlSource: String;
+
   def useObjectBank(ob: ObjectBank): WebPage;
 
   def useObjectBank: WebPage = useObjectBank(ObjectBank.default);
