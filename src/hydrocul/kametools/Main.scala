@@ -25,7 +25,7 @@ object Main {
     System.setProperty("org.apache.commons.logging.simplelog.showlogname", "true");
     System.setProperty("org.apache.commons.logging.simplelog.showShortLogname", "false");
     System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
-    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "warn");
+    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "fatal");
 
     val env = new App.StandardEnv();
 
