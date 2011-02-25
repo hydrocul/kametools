@@ -12,7 +12,7 @@ import com.gargoylesoftware.htmlunit.util.WebResponseWrapper;
 import hydrocul.kametools.App;
 import hydrocul.kametools.ObjectBank;
 
-case class WebBrowserApp(url: String, printXml: Boolean) extends App {
+case class WebBrowserApp(url: String, mode: WebBrowserApp.OutputMode) extends App {
 
   override def exec(env: App.Env){
 
@@ -20,34 +20,35 @@ case class WebBrowserApp(url: String, printXml: Boolean) extends App {
 
     val page = browser.open(url);
 
-    if(printXml){
-      env.out.println(page.getXmlSource);
-    } else {
-      val page2 = page.useObjectBank;
-      env.out.println(page2.getContent);
+    mode match {
+      case WebBrowserApp.TextMode =>
+        val page2 = page.useObjectBank;
+        env.out.println(page2.getContent);
+      case WebBrowserApp.XmlMode =>
+        env.out.println(page.getXmlSource);
+      case WebBrowserApp.SourceMode =>
+        env.out.println(page.getSource);
     }
 
   }
 
   override def next(arg: String): App = (nextCommonly(arg), arg) match {
     case (Some(app), _) => app;
-    case (None, "--xml") => HtmlUnitBrowser(url, true);
+    case (None, "--xml") => WebBrowserApp(url, WebBrowserApp.XmlMode);
+    case (None, "--source") => WebBrowserApp(url, WebBrowserApp.SourceMode);
     case _ => throw new Exception("Unknown option: " + arg);
   }
 
-/*
-  private def getWebConnection(src: WebConnection): WebConnection = {
-    new WebConnectionWrapper(src){
-      override def getResponse(request: WebRequest): WebResponse = {
-        val res = super.getResponse(request);
-        request.getUrl.toString match {
-          case _ => res;
-        }
-//        new WebResponseWrapper(super.getResponse(request)){
-//        }
-      }
-    }
-  }
-*/
+}
+
+object WebBrowserApp {
+
+  abstract sealed class OutputMode extends java.io.Serializable;
+
+  object TextMode extends OutputMode;
+
+  object XmlMode extends OutputMode;
+
+  object SourceMode extends OutputMode;
 
 }
