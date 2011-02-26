@@ -18,6 +18,10 @@ class WebSite {
 
   def open(ua: WebClient, url: String, query: String): Any = {
 
+    if(!matchUrl(url)){
+      throw new Exception("cannot handle this url: " + url);
+    }
+
     ua.setRefreshHandler(new ThreadedRefreshHandler(){
       override def handleRefresh(page: Page, url: java.net.URL, requestedWait: Int){
         println(url);
@@ -56,7 +60,11 @@ object WebSite {
 
   lazy val default = new WebSite(){}
 
-  def list = default :: Nil;
+  def list = new TwilogDailyWebSite() :: default :: Nil;
+
+  def html2xml(html: HtmlPage): scala.xml.Elem = {
+    scala.xml.XML.loadString(html.asXml);
+  }
 
 }
 
