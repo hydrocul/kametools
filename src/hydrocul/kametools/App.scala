@@ -10,19 +10,15 @@ trait App {
     App.HelpApp(this).exec(env);
   }
 
-  def next(arg: String): App = {
-    val c = nextCommonly(arg);
-    if(c.isDefined){
-      c.get;
-    } else {
-      throw new Exception("Unknown command: " + arg);
-    }
+  def next(arg: String): Option[Any] = {
+    nextCommonly(arg);
   }
 
-  protected def nextCommonly(arg: String): Option[App] = {
+  protected def nextCommonly(arg: String): Option[Any] = {
     arg match {
       case "--help" => Some(App.HelpApp(this));
-      case "--label" => Some(App.NeedOfArgumentApp(arg => App.LabelApp(this, arg)));
+      case "--label" => Some(App.NeedOfArgumentApp(arg =>
+        Some(App.LabelApp(this, arg))));
       case _ => None;
     }
   }
@@ -46,24 +42,24 @@ object App {
       env.out.println("no argument"); // TODO
     }
 
-    override def next(arg: String): App = {
+    override def next(arg: String): Option[Any] = {
       val c = nextCommonly(arg);
       if(c.isDefined){
-        c.get;
+        c;
       } else if(arg.startsWith("http://") || arg.startsWith("https://")){
-        web.WebBrowserApp(arg, None);
+        Some(web.WebBrowserApp(arg, None));
       } else if(arg.startsWith("./")){
         val file = (new File(arg.substring(2))).getAbsoluteFile;
-        App.apply(file);
+        Some(file);
       } else if(arg.startsWith("/") || arg.startsWith("../")){
         val file = (new File(arg)).getAbsoluteFile;
-        App.apply(file);
+        Some(file);
       } else {
         val o = ObjectBank.default.get(arg);
         if(o.isDefined){
-          App.apply(o.get);
+          o;
         } else {
-          super.next(arg);
+          None;
         }
       }
     }
@@ -78,13 +74,13 @@ object App {
 
   }
 
-  case class NeedOfArgumentApp(p: String => App) extends App {
+  case class NeedOfArgumentApp(p: String => Option[Any]) extends App {
 
     override def exec(env: App.Env){
       throw new Exception("need argument");
     }
 
-    override def next(arg: String): App = p(arg);
+    override def next(arg: String): Option[Any] = p(arg);
 
   }
 
