@@ -10,30 +10,37 @@ trait App {
     App.HelpApp(this).exec(env);
   }
 
-  def next(arg: String): Option[Any] = {
-    nextCommonly(arg);
-  }
-
-  protected def nextCommonly(arg: String): Option[Any] = {
-    arg match {
-      case "--help" => Some(App.HelpApp(this));
-      case "--label" => Some(App.NeedOfArgumentApp(arg =>
-        Some(App.LabelApp(this, arg))));
-      case _ => None;
-    }
-  }
+  def modify(arg: String): Option[Any] = None;
 
 }
 
 object App {
 
-  def apply(obj: Any): App = {
+  def next(obj: Any, arg: String, env: App.Env): Any = {
     obj match {
-      case obj: App => obj;
-      case obj: FileSet => LsApp(obj);
-      case obj: File => LsApp(FileSet(obj));
-      case obj => PrintApp(obj);
+      case app: App => app.modify(arg) match {
+        case Some(next) => next;
+        case None => nextSub(obj, arg, env);
+      }
+      case obj => nextSub(obj, arg, env);
     }
+  }
+
+  private def nextSub(obj: Any, arg: String, env: App.Env): Any = {
+    (obj, arg) match {
+      case _ => throw new Exception("Unknown argument: " + arg);
+    }
+  }
+
+  def finish(obj: Any, env: App.Env){
+    obj match {
+      case app: App => app.exec(env);
+      case obj => finishDefault(obj, env);
+    }
+  }
+
+  private def finishDefault(obj: Any, env: App.Env){
+    env.out.println(obj);
   }
 
   object StartApp extends App with java.io.Serializable {
@@ -42,13 +49,13 @@ object App {
       env.out.println("no argument"); // TODO
     }
 
-    override def next(arg: String): Option[Any] = {
-      val c = nextCommonly(arg);
-      if(c.isDefined){
-        c;
-      } else if(arg.startsWith("http://") || arg.startsWith("https://")){
+    override def modify(arg: String): Option[Any] = {
+/* TODO
+      if(arg.startsWith("http://") || arg.startsWith("https://")){
         Some(web.WebBrowserApp(arg, None));
-      } else if(arg.startsWith("./")){
+      } else
+*/
+      if(arg.startsWith("./")){
         val file = (new File(arg.substring(2))).getAbsoluteFile;
         Some(file);
       } else if(arg.startsWith("/") || arg.startsWith("../")){
@@ -62,40 +69,6 @@ object App {
           None;
         }
       }
-    }
-
-  }
-
-  case class SimpleApp(p: App.Env=>Unit) extends App {
-
-    override def exec(env: App.Env){
-      p(env);
-    }
-
-  }
-
-  case class NeedOfArgumentApp(p: String => Option[Any]) extends App {
-
-    override def exec(env: App.Env){
-      throw new Exception("need argument");
-    }
-
-    override def next(arg: String): Option[Any] = p(arg);
-
-  }
-
-  case class LabelApp(app: App, label: String) extends App {
-
-    override def exec(env: App.Env){
-      ObjectBank.default.put(label, Some(app));
-    }
-
-  }
-
-  case class HelpApp(app: App) extends App {
-
-    override def exec(env: App.Env){
-      env.out.println(app.toString);
     }
 
   }
