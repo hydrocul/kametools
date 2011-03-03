@@ -8,7 +8,7 @@ trait App {
 
   def exec(env: App.Env): Any;
 
-  def modify(arg: String): Option[Any] = None;
+  def modify(arg: String): Option[App] = None;
 
 }
 
@@ -20,6 +20,16 @@ object App {
         case Some(next) => next;
         case None => next(app.exec(env), arg, env);
       }
+      case (StartApp, arg) if(arg.startsWith("./")) =>
+        (new File(arg.substring(2))).getAbsoluteFile;
+      case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
+        (new File(arg)).getAbsoluteFile;
+      case (StartApp, arg) => ObjectBank.default.get(arg) match {
+        case Some(o) => Some(o);
+        case None => throw new Exception("Unknown object: " + arg);
+      }
+      case (obj: File, arg) => next(LsApp(FileSet.OneFileSet(obj)), arg, env);
+      case (obj: FileSet, arg) => next(LsApp(obj), arg, env);
       case _ => throw new Exception("Unknown argument: " + arg);
     }
   }
@@ -27,6 +37,7 @@ object App {
   def finish(obj: Any, env: App.Env){
     obj match {
       case app: App => app.exec(env);
+      case StartApp => throw new Exception("No argument");
       case obj => finishDefault(obj, env);
     }
   }
@@ -35,35 +46,28 @@ object App {
     env.out.println(obj);
   }
 
-  object StartApp extends App with java.io.Serializable {
+  object StartApp extends java.io.Serializable {
+
+  }
+
+  case class SimpleApp(p: App.Env=>Unit) extends App {
 
     override def exec(env: App.Env){
-      env.out.println("no argument"); // TODO
-    }
-
-    override def modify(arg: String): Option[Any] = {
-/* TODO
-      if(arg.startsWith("http://") || arg.startsWith("https://")){
-        Some(web.WebBrowserApp(arg, None));
-      } else
-*/
-      if(arg.startsWith("./")){
-        val file = (new File(arg.substring(2))).getAbsoluteFile;
-        Some(file);
-      } else if(arg.startsWith("/") || arg.startsWith("../")){
-        val file = (new File(arg)).getAbsoluteFile;
-        Some(file);
-      } else {
-        val o = ObjectBank.default.get(arg);
-        if(o.isDefined){
-          o;
-        } else {
-          None;
-        }
-      }
+      p(env);
     }
 
   }
+
+  case class NeedOfArgumentApp(p: String => App) extends App {
+
+    override def exec(env: App.Env){
+      throw new Exception("need argument");
+    }
+
+    override def modify(arg: String): Option[App] = Some(p(arg));
+
+  }
+
 
   trait Env {
 

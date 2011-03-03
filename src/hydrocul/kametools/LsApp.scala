@@ -53,36 +53,34 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
-  override def next(arg: String): Option[Any] = {
-    val c = nextCommonly(arg);
-    if(c.isDefined){
-      c;
-    } else arg match {
-      case "-t" => App.NeedOfArgumentApp(
-        format => LsApp(fileSet, count, format, lineFormat));
-      case "-f" => App.NeedOfArgumentApp(
-        format => LsApp(fileSet, count, timeFormat, format));
-      case LsApp.OptionCPattern(c) => LsApp(fileSet,
-        c.toInt, timeFormat, lineFormat);
-      case "-a" => LsApp(fileSet, 0, timeFormat, lineFormat);
-      case "-r" => LsApp(
+  override def modify(arg: String): Option[App] = {
+    arg match {
+      case "-t" => Some(App.NeedOfArgumentApp(
+        format => LsApp(fileSet, count, format, lineFormat)));
+      case "-f" => Some(App.NeedOfArgumentApp(
+        format => LsApp(fileSet, count, timeFormat, format)));
+      case LsApp.OptionCPattern(c) => Some(LsApp(fileSet,
+        c.toInt, timeFormat, lineFormat));
+      case "-a" => Some(LsApp(fileSet, 0, timeFormat, lineFormat));
+      case "-r" => Some(LsApp(
         FileSet.recursive(fileSet, 0, -1, false, false),
-        count, timeFormat, lineFormat);
-      case LsApp.OptionRPattern1(d) => LsApp(
+        count, timeFormat, lineFormat));
+      case LsApp.OptionRPattern1(d) => Some(LsApp(
         FileSet.recursive(fileSet, 0, d.toInt, false, false),
-        count, timeFormat, lineFormat);
-      case LsApp.OptionRPattern2(d1, d2) => LsApp(
+        count, timeFormat, lineFormat));
+      case LsApp.OptionRPattern2(d1, d2) => Some(LsApp(
         FileSet.recursive(fileSet, d1.toInt, d2.toInt, false, false),
-        count, timeFormat, lineFormat);
-      case LsApp.OptionRPattern3(d1) => LsApp(
+        count, timeFormat, lineFormat));
+      case LsApp.OptionRPattern3(d1) => Some(LsApp(
         FileSet.recursive(fileSet, d1.toInt, -1, false, false),
-        count, timeFormat, lineFormat);
-      case "-v" => LsApp(fileSet.reverse,
-        count, timeFormat, lineFormat);
-      case "-p" => App.NeedOfArgumentApp(
-        pattern => LsApp(fileSet.filter(cond(_, pattern)), count, timeFormat, lineFormat));
-      case "-o" => OpenApp(fileSet);
-      case _ => throw new Exception("Unknown option: " + arg);
+        count, timeFormat, lineFormat));
+      case "-v" => Some(LsApp(fileSet.reverse,
+        count, timeFormat, lineFormat));
+      case "-p" => Some(App.NeedOfArgumentApp(
+        pattern => LsApp(fileSet.filter(cond(_, pattern)),
+        count, timeFormat, lineFormat)));
+      case "-o" => Some(OpenApp(fileSet));
+      case _ => None;
     }
   }
 
