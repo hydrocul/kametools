@@ -4,20 +4,6 @@ import java.io.File;
 
 object Main {
 
-/*
-  private val apps: Map[String, App] = Map(
-    "now" -> now.Now, TODO
-    "ls" -> ls.Ls,
-    "ll" -> ls.Ls,
-    "open" -> open.Open, TODO
-    "print" -> print.Print,
-    "web" -> web.HtmlUnitBrowser, TODO
-    "groovy" -> groovyevaluator.EvaluateGroovy, TODO
-    "scala" -> scalaevaluator.EvaluateScala, TODO
-    "help" -> Help
-  );
-*/
-
   def main(args: Array[String]){
 
     // System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
@@ -29,8 +15,8 @@ object Main {
 
     val env = new App.StandardEnv();
 
-    args.foldLeft[App](App.StartApp)((app: App, arg: String) => app.next(arg)).
-      exec(env);
+    App.finish(args.foldLeft[Any](App.StartApp)((obj: Any, arg: String) =>
+      App.next(obj, arg, env)), env);
 
   }
 

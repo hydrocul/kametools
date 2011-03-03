@@ -6,9 +6,7 @@ import java.io.StringWriter;
 
 trait App {
 
-  def exec(env: App.Env){
-    App.HelpApp(this).exec(env);
-  }
+  def exec(env: App.Env): Any;
 
   def modify(arg: String): Option[Any] = None;
 
@@ -17,17 +15,11 @@ trait App {
 object App {
 
   def next(obj: Any, arg: String, env: App.Env): Any = {
-    obj match {
-      case app: App => app.modify(arg) match {
-        case Some(next) => next;
-        case None => nextSub(obj, arg, env);
-      }
-      case obj => nextSub(obj, arg, env);
-    }
-  }
-
-  private def nextSub(obj: Any, arg: String, env: App.Env): Any = {
     (obj, arg) match {
+      case (app: App, arg) => app.modify(arg) match {
+        case Some(next) => next;
+        case None => next(app.exec(env), arg, env);
+      }
       case _ => throw new Exception("Unknown argument: " + arg);
     }
   }
