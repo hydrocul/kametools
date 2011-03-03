@@ -53,33 +53,37 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
-  override def next(arg: String): App = (nextCommonly(arg), arg) match {
-    case (Some(app), _) => app;
-    case (None, "-t") => App.NeedOfArgumentApp(
-      format => LsApp(fileSet, count, format, lineFormat));
-    case (None, "-f") => App.NeedOfArgumentApp(
-      format => LsApp(fileSet, count, timeFormat, format));
-    case (None, LsApp.OptionCPattern(c)) => LsApp(fileSet,
-      c.toInt, timeFormat, lineFormat);
-    case (None, "-a") => LsApp(fileSet, 0, timeFormat, lineFormat);
-    case (None, "-r") => LsApp(
-      FileSet.recursive(fileSet, 0, -1, false, false),
-      count, timeFormat, lineFormat);
-    case (None, LsApp.OptionRPattern1(d)) => LsApp(
-      FileSet.recursive(fileSet, 0, d.toInt, false, false),
-      count, timeFormat, lineFormat);
-    case (None, LsApp.OptionRPattern2(d1, d2)) => LsApp(
-      FileSet.recursive(fileSet, d1.toInt, d2.toInt, false, false),
-      count, timeFormat, lineFormat);
-    case (None, LsApp.OptionRPattern3(d1)) => LsApp(
-      FileSet.recursive(fileSet, d1.toInt, -1, false, false),
-      count, timeFormat, lineFormat);
-    case (None, "-v") => LsApp(fileSet.reverse,
-      count, timeFormat, lineFormat);
-    case (None, "-p") => App.NeedOfArgumentApp(
-      pattern => LsApp(fileSet.filter(cond(_, pattern)), count, timeFormat, lineFormat));
-    case (None, "-o") => OpenApp(fileSet);
-    case _ => throw new Exception("Unknown option: " + arg);
+  override def next(arg: String): Option[Any] = {
+    val c = nextCommonly(arg);
+    if(c.isDefined){
+      c;
+    } else arg match {
+      case "-t" => App.NeedOfArgumentApp(
+        format => LsApp(fileSet, count, format, lineFormat));
+      case "-f" => App.NeedOfArgumentApp(
+        format => LsApp(fileSet, count, timeFormat, format));
+      case LsApp.OptionCPattern(c) => LsApp(fileSet,
+        c.toInt, timeFormat, lineFormat);
+      case "-a" => LsApp(fileSet, 0, timeFormat, lineFormat);
+      case "-r" => LsApp(
+        FileSet.recursive(fileSet, 0, -1, false, false),
+        count, timeFormat, lineFormat);
+      case LsApp.OptionRPattern1(d) => LsApp(
+        FileSet.recursive(fileSet, 0, d.toInt, false, false),
+        count, timeFormat, lineFormat);
+      case LsApp.OptionRPattern2(d1, d2) => LsApp(
+        FileSet.recursive(fileSet, d1.toInt, d2.toInt, false, false),
+        count, timeFormat, lineFormat);
+      case LsApp.OptionRPattern3(d1) => LsApp(
+        FileSet.recursive(fileSet, d1.toInt, -1, false, false),
+        count, timeFormat, lineFormat);
+      case "-v" => LsApp(fileSet.reverse,
+        count, timeFormat, lineFormat);
+      case "-p" => App.NeedOfArgumentApp(
+        pattern => LsApp(fileSet.filter(cond(_, pattern)), count, timeFormat, lineFormat));
+      case "-o" => OpenApp(fileSet);
+      case _ => throw new Exception("Unknown option: " + arg);
+    }
   }
 
   private def cond(file: File, pattern: String): Boolean = {

@@ -28,10 +28,14 @@ case class WebBrowserApp(url: String, query: Option[String]) extends App {
 
   }
 
-  override def next(arg: String): App = (nextCommonly(arg), arg) match {
-    case (Some(app), _) => app;
-    case (None, newQuery) if(!query.isDefined) => WebBrowserApp(url, Some(newQuery));
-    case _ => throw new Exception("Unknown option: " + arg);
+  override def next(arg: String): Option[Any] = {
+    val c = nextCommonly(arg);
+    if(c.isDefined){
+      c;
+    } else arg match {
+      case newQuery if(!query.isDefined) => Some(WebBrowserApp(url, Some(newQuery)));
+      case _ => None;
+    }
   }
 
 }
