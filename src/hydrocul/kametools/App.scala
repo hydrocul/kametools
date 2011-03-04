@@ -28,9 +28,10 @@ object App {
         case Some(o) => Some(o);
         case None => throw new Exception("Unknown object: " + arg);
       }
-      case (obj: File, arg) => next(LsApp(FileSet.OneFileSet(obj)), arg, env);
-      case (obj: FileSet, arg) => next(LsApp(obj), arg, env);
-      case _ => throw new Exception("Unknown argument: " + arg);
+      case _ => toApp(obj) match {
+        case Some(app) => next(app, arg, env);
+        case None => throw new Exception("Unknown argument: " + arg);
+      }
     }
   }
 
@@ -38,7 +39,18 @@ object App {
     obj match {
       case app: App => app.exec(env);
       case StartApp => throw new Exception("No argument");
-      case obj => finishDefault(obj, env);
+      case obj => toApp(obj) match {
+        case Some(app) => app.exec(env);
+        case None => finishDefault(obj, env);
+      }
+    }
+  }
+
+  private def toApp(obj: Any): Option[App] = {
+    obj match {
+      case obj: File => Some(LsApp(FileSet.OneFileSet(obj)));
+      case obj: FileSet => Some(LsApp(obj));
+      case _ => None;
     }
   }
 
@@ -46,9 +58,7 @@ object App {
     env.out.println(obj);
   }
 
-  object StartApp extends java.io.Serializable {
-
-  }
+  object StartApp extends java.io.Serializable;
 
   case class SimpleApp(p: App.Env=>Unit) extends App {
 
