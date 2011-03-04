@@ -6,13 +6,10 @@ object Test {
   def main(args: Array[String]){
 
     KTest.test();
-//    hydrocul.kametools.SampleTest.test();
     hydrocul.kametools.ObjectBankTest.test();
     hydrocul.kametools.FileSetTest.test();
-//    hydrocul.kametools.HelpAppTest.test();
-    hydrocul.kametools.PrintAppTest.test();
-//    hydrocul.kametools.time.NowAppTest.test();
-    hydrocul.kametools.LsAppTest.test();
+//    hydrocul.kametools.PrintAppTest.test();
+//    hydrocul.kametools.LsAppTest.test();
 
     println("Success: %d / %d".format(KTest.getSuccessCount, KTest.getTotalCount));
 

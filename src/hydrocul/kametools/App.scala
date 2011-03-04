@@ -6,69 +6,62 @@ import java.io.StringWriter;
 
 trait App {
 
-  def exec(env: App.Env){
-    App.HelpApp(this).exec(env);
-  }
+  def exec(env: App.Env): Any;
 
-  def next(arg: String): App = {
-    val c = nextCommonly(arg);
-    if(c.isDefined){
-      c.get;
-    } else {
-      throw new Exception("Unknown command: " + arg);
-    }
-  }
-
-  protected def nextCommonly(arg: String): Option[App] = {
-    arg match {
-      case "--help" => Some(App.HelpApp(this));
-      case "--label" => Some(App.NeedOfArgumentApp(arg => App.LabelApp(this, arg)));
-      case _ => None;
-    }
-  }
+  def modify(arg: String): Option[App] = None;
 
 }
 
 object App {
 
-  def apply(obj: Any): App = {
-    obj match {
-      case obj: App => obj;
-      case obj: FileSet => LsApp(obj);
-      case obj: File => LsApp(FileSet(obj));
-      case obj => PrintApp(obj);
-    }
-  }
-
-  object StartApp extends App with java.io.Serializable {
-
-    override def exec(env: App.Env){
-      env.out.println("no argument"); // TODO
-    }
-
-    override def next(arg: String): App = {
-      val c = nextCommonly(arg);
-      if(c.isDefined){
-        c.get;
-      } else if(arg.startsWith("http://") || arg.startsWith("https://")){
-        web.WebBrowserApp(arg, None);
-      } else if(arg.startsWith("./")){
-        val file = (new File(arg.substring(2))).getAbsoluteFile;
-        App.apply(file);
-      } else if(arg.startsWith("/") || arg.startsWith("../")){
-        val file = (new File(arg)).getAbsoluteFile;
-        App.apply(file);
-      } else {
-        val o = ObjectBank.default.get(arg);
-        if(o.isDefined){
-          App.apply(o.get);
-        } else {
-          super.next(arg);
-        }
+  def next(obj: Any, arg: String, env: App.Env): Any = {
+    (obj, arg) match {
+      case (app: App, arg) => app.modify(arg) match {
+        case Some(next) => next;
+        case None => next(app.exec(env), arg, env);
+      }
+      case (StartApp, arg) if(arg.startsWith("http://") ||
+        arg.startsWith("https://")) =>
+        web.WebBrowserApp(arg);
+      case (StartApp, arg) if(arg.startsWith("./")) =>
+        (new File(arg.substring(2))).getAbsoluteFile;
+      case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
+        (new File(arg)).getAbsoluteFile;
+      case (StartApp, arg) => ObjectBank.default.get(arg) match {
+        case Some(o) => Some(o);
+        case None => throw new Exception("Unknown object: " + arg);
+      }
+      case _ => toApp(obj) match {
+        case Some(app) => next(app, arg, env);
+        case None => throw new Exception("Unknown argument: " + arg);
       }
     }
-
   }
+
+  def finish(obj: Any, env: App.Env){
+    obj match {
+      case app: App => app.exec(env);
+      case StartApp => throw new Exception("No argument");
+      case obj => toApp(obj) match {
+        case Some(app) => app.exec(env);
+        case None => finishDefault(obj, env);
+      }
+    }
+  }
+
+  private def toApp(obj: Any): Option[App] = {
+    obj match {
+      case obj: File => Some(LsApp(FileSet.OneFileSet(obj)));
+      case obj: FileSet => Some(LsApp(obj));
+      case _ => None;
+    }
+  }
+
+  private def finishDefault(obj: Any, env: App.Env){
+    env.out.println(obj);
+  }
+
+  object StartApp extends java.io.Serializable;
 
   case class SimpleApp(p: App.Env=>Unit) extends App {
 
@@ -84,25 +77,10 @@ object App {
       throw new Exception("need argument");
     }
 
-    override def next(arg: String): App = p(arg);
+    override def modify(arg: String): Option[App] = Some(p(arg));
 
   }
 
-  case class LabelApp(app: App, label: String) extends App {
-
-    override def exec(env: App.Env){
-      ObjectBank.default.put(label, Some(app));
-    }
-
-  }
-
-  case class HelpApp(app: App) extends App {
-
-    override def exec(env: App.Env){
-      env.out.println(app.toString);
-    }
-
-  }
 
   trait Env {
 

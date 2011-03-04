@@ -12,7 +12,7 @@ import com.gargoylesoftware.htmlunit.util.WebResponseWrapper;
 import hydrocul.kametools.App;
 import hydrocul.kametools.ObjectBank;
 
-case class WebBrowserApp(url: String, query: Option[String]) extends App {
+case class WebBrowserApp(url: String, query: Option[String] = None) extends App {
 
   override def exec(env: App.Env){
 
@@ -28,10 +28,12 @@ case class WebBrowserApp(url: String, query: Option[String]) extends App {
 
   }
 
-  override def next(arg: String): App = (nextCommonly(arg), arg) match {
-    case (Some(app), _) => app;
-    case (None, newQuery) if(!query.isDefined) => WebBrowserApp(url, Some(newQuery));
-    case _ => throw new Exception("Unknown option: " + arg);
+  override def modify(arg: String): Option[App] = {
+    arg match {
+      case newQuery if(!query.isDefined) =>
+        Some(WebBrowserApp(url, Some(newQuery)));
+      case _ => None;
+    }
   }
 
 }
