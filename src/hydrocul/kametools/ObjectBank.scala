@@ -16,6 +16,8 @@ import scala.actors.Actor.loop
 import scala.actors.Actor.react;
 import scala.actors.Actor.reply;
 import scala.actors.DaemonActor;
+import scala.xml.Elem;
+import scala.xml.XML;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,6 +63,20 @@ class ObjectBank(dirName: String){
     name match {
       case Some(name) if(name.startsWith(".")) => Some(name.substring(1));
       case _ => name;
+    }
+  }
+
+  def getXml(name: String): Option[Elem] = {
+    get(name) match {
+      case Some(s: String) => Some(XML.loadString(s));
+      case _ => None;
+    }
+  }
+
+  def getXmlOrElse(name: String, defaultValue: =>Elem): Elem = {
+    getXml(name) match {
+      case Some(elem) => elem;
+      case None => defaultValue;
     }
   }
 
