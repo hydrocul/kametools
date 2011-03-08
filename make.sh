@@ -8,7 +8,7 @@ fi
 . buildlib.tmp
 
 jarname=hydrocul-kametools.jar
-fatjarname=hydrocul-kametools.jar
+fatjarname=hydrocul-kametools-fat.jar
 mainclass=hydrocul.kametools.Main
 
 case $1 in
