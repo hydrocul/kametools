@@ -28,7 +28,7 @@ object App {
       case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
         (new File(arg)).getAbsoluteFile;
       case (StartApp, arg) => ObjectBank.default.get(arg) match {
-        case Some(o) => Some(o);
+        case Some(o) => o;
         case None => throw new Exception("Unknown object: " + arg);
       }
       case _ => toApp(obj) match {
