@@ -27,6 +27,8 @@ object App {
         (new File(arg.substring(2))).getAbsoluteFile;
       case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
         (new File(arg)).getAbsoluteFile;
+      case (StartApp, "daemon") =>
+        OpenApp.FileOpenReceiver;
       case (StartApp, arg) => ObjectBank.default.get(arg) match {
         case Some(o) => o;
         case None => throw new Exception("Unknown object: " + arg);
