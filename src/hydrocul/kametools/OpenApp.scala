@@ -85,7 +85,7 @@ object OpenApp {
    */
   private def putIndication(obDirName: String, filePath: String){
     val ob = new ObjectBank(obDirName);
-    val q = ob.getOrElse[Queue[String]](varName, Queue());
+    val q: Queue[String] = ob.getOrElse[Queue[String]](varName, Queue());
     ob.put(varName, Some(q :+ filePath));
   }
 
@@ -94,9 +94,14 @@ object OpenApp {
    */
   private def getIndication(): Option[String] = {
     ObjectBank.default.get(varName) match {
-      case Some(Queue(h: String, t: AnyRef)) => {
-        ObjectBank.default.put(varName, Some(t));
-        Some(h);
+      case Some(q: Queue[_]) if(!q.isEmpty) => {
+        q.head match {
+          case h: String =>
+            ObjectBank.default.put(varName, Some(q.tail));
+            Some(h);
+          case _ =>
+            None;
+        }
       }
       case _ => None;
     }

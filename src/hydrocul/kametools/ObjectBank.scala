@@ -357,7 +357,12 @@ object ObjectBank {
   lazy val default: ObjectBank = new ObjectBank(dirName);
 
   def dirName: String = {
-    System.getProperty("user.home") + File.separator + ".kametools";
+    val c = System.getProperty("kt.config")
+    if(c==null){
+      System.getProperty("user.home") + File.separator + ".kametools";
+    } else {
+      c;
+    }
   }
 
   object forScala {
