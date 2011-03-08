@@ -7,7 +7,17 @@ fi
 
 . buildlib.tmp
 
+jarname=hydrocul-kametools.jar
+fatjarname=hydrocul-kametools.jar
+mainclass=hydrocul.kametools.Main
+
 case $1 in
+################################
+all)
+################################
+buildlib_all $jarname
+
+;;
 ################################
 compile)
 ################################
@@ -17,19 +27,19 @@ buildlib_dl_si4j
 buildlib_dl_groovy
 buildlib_dl_htmlunit
 
-buildlib_compile hydrocul-kametools.jar
+buildlib_compile
 
 ;;
 ################################
-test)
+build-jar)
 ################################
-buildlib_test
+buildlib_build_jar $jarname
 
 ;;
 ################################
-build)
+build-fatjar)
 ################################
-buildlib_build_jar hydrocul-kametools.jar
+buildlib_build_fatjar $fatjarname $mainclass
 
 ;;
 ################################

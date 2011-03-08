@@ -3,5 +3,6 @@ touch/
 tmp/
 lib/
 dist/
+dist-tmp/
 scaladoc/
 *.tmp
