@@ -6,14 +6,13 @@ import java.io.StringWriter;
 
 trait App {
 
-  def exec(env: App.Env): Any;
-
-  def modify(arg: String): Option[App] = None;
+  def exec(env: App.Env);
 
 }
 
 object App {
 
+/*
   def next(obj: Any, arg: String, env: App.Env): Any = {
     (obj, arg) match {
       case (app: App, arg) => app.modify(arg) match {
@@ -64,9 +63,11 @@ object App {
   private def finishDefault(obj: Any, env: App.Env){
     env.out.println(obj);
   }
+*/
 
   object StartApp extends java.io.Serializable;
 
+/*
   case class SimpleApp(p: App.Env=>Unit) extends App {
 
     override def exec(env: App.Env){
@@ -84,7 +85,7 @@ object App {
     override def modify(arg: String): Option[App] = Some(p(arg));
 
   }
-
+*/
 
   trait Env {
 

@@ -40,6 +40,15 @@ class ObjectBank(dirName: String){
     }
   }
 
+  def isDefinedAt(name: String): Boolean = {
+    val ret = (ioActor !? CheckAction(name)).
+      asInstanceOf[Boolean];
+    ret match {
+      case false if(!name.startsWith(".")) => isDefinedAt("." + name);
+      case _ => ret;
+    }
+  }
+
   def getOrElse[A](name: String, defaultValue: =>A): A = {
     get(name) match {
       case Some(v) => try {
@@ -189,6 +198,7 @@ class ObjectBank(dirName: String){
 
 
   private case class LoadAction(name: String);
+  private case class CheckAction(name: String);
   private case class SaveAction(name: String, value: Option[AnyRef]);
 
   private val ioActor = new DaemonActor(){ def act(){
@@ -208,9 +218,22 @@ class ObjectBank(dirName: String){
           None;
         }
       } catch {
-        case LoggedException(e) => None;
+        case LoggedException(e) => Some(LoadError);
         case e => log.error("load error name=" + name, e);
-          None;
+          Some(LoadError);
+      }
+    }
+
+    def check(name: String): Boolean = {
+      val fnameBody = dirName + File.separator + name;
+      if((new File(fnameBody + "-string.txt")).exists){
+        true;
+      } else if((new File(fnameBody + ".groovy")).exists){
+        true;
+      } else if((new File(fnameBody + ".dat")).exists){
+        true;
+      } else {
+        false;
       }
     }
 
@@ -341,6 +364,8 @@ class ObjectBank(dirName: String){
       react {
         case LoadAction(name) =>
           reply(load(name));
+        case CheckAction(name) =>
+          reply(check(name));
         case SaveAction(name, value) =>
           save(name, value);
           reply(true);
@@ -391,6 +416,8 @@ object ObjectBank {
     }
 
   }
+
+  object LoadError;
 
   private def getHashCode(obj: AnyRef): Int = obj.hashCode;
 

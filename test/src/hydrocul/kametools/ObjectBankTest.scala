@@ -9,8 +9,10 @@ object ObjectBankTest {
   def test(){
 
     ObjectBank.default.put("test_1", Some(List(3, 4, 5)));
+    Test.assertEquals("", true, ObjectBank.default.isDefinedAt("test_1"));
     Test.assertEquals("", Some(List(3, 4, 5)), ObjectBank.default.get("test_1"));
 
+    Test.assertEquals("", false, ObjectBank.default.isDefinedAt("test_2"));
     Test.assertEquals("", None, ObjectBank.default.get("test_2"));
 
     Test.assertEquals("", List(3, 4, 5),
@@ -26,12 +28,14 @@ object ObjectBankTest {
       ObjectBank.default.getNameByValue(List(5, 6, 7)));
 
     val name1 = ObjectBank.default.put(Range(123, 125));
+    Test.assertEquals("", true, ObjectBank.default.isDefinedAt(name1));
     Test.assertEquals("", Some(Range(123, 125)), ObjectBank.default.get(name1));
 
     Test.assertEquals("", Some(name1),
       ObjectBank.default.getNameByValue(Range(123, 125)));
 
     ObjectBank.default.put("test_1", None);
+    Test.assertEquals("", false, ObjectBank.default.isDefinedAt("test_1"));
     Test.assertEquals("", None, ObjectBank.default.get("test_1"));
 
     ObjectBank.default.remove(name1);
