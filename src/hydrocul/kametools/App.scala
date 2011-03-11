@@ -23,6 +23,8 @@ object App {
       case (StartApp, arg) if(arg.startsWith("http://") ||
         arg.startsWith("https://")) =>
         web.WebBrowserApp(arg);
+      case (StartApp, arg) if(arg == ".") =>
+        (new File(".")).getAbsoluteFile;
       case (StartApp, arg) if(arg.startsWith("./")) =>
         (new File(arg.substring(2))).getAbsoluteFile;
       case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
