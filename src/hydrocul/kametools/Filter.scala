@@ -35,9 +35,12 @@ object Filter {
     }
   }
 
-  private val filters: List[Filter] =
+  private lazy val filters: List[Filter] =
     StartAppFilter ::
-    ObjectBankFilter :: Nil;
+    StandardFilter ::
+    FileSet.filter ::
+    ObjectBankFilter ::
+    StartAppNoArgumentFilter :: Nil;
 
   import App.StartApp;
 
@@ -46,14 +49,19 @@ object Filter {
       (new File(arg.substring(2))).getAbsoluteFile;
     case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
       (new File(arg)).getAbsoluteFile;
-    case (StartApp, arg) =>
-      throw new Exception("No argument");
 /*
     case (StartApp, "daemon") =>
       OpenApp.FileOpenReceiver;
 */
   }, Help(Array(
     HelpLine("<path>", "file")
+  )));
+
+  private val StandardFilter = create({
+    case (obj, "class") =>
+      obj.getClass();
+  }, Help(Array(
+    HelpLine("class", "class")
   )));
 
   private val ObjectBankFilter = new Filter {

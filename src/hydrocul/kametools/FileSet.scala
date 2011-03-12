@@ -342,10 +342,42 @@ object FileSet {
     name1.compareToIgnoreCase(name2);
   }
 
+  import Filter.Help;
+  import Filter.HelpLine;
+
   val filter = Filter.create({
+    case (fileSet: FileSet, "r") =>
+      FileSet.recursive(fileSet, 0, -1, false, false);
+    case (file: File, "r") =>
+      FileSet.recursive(FileSet.OneFileSet(file), 0, -1, false, false);
+    case (fileSet: FileSet, OptionRPattern1(d2)) =>
+      FileSet.recursive(fileSet, 0, d2.toInt, false, false);
+    case (file: File, OptionRPattern1(d2)) =>
+      FileSet.recursive(FileSet.OneFileSet(file), 0, d2.toInt, false, false);
+    case (fileSet: FileSet, OptionRPattern2(d1, d2)) =>
+      FileSet.recursive(fileSet, d1.toInt, d2.toInt, false, false);
+    case (file: File, OptionRPattern2(d1, d2)) =>
+      FileSet.recursive(FileSet.OneFileSet(file), d1.toInt, d2.toInt, false, false);
+    case (fileSet: FileSet, OptionRPattern3(d1)) =>
+      FileSet.recursive(fileSet, d1.toInt, -1, false, false);
+    case (file: File, OptionRPattern3(d1)) =>
+      FileSet.recursive(FileSet.OneFileSet(file), d1.toInt, -1, false, false);
+    case (fileSet: FileSet, "reverse") =>
+      fileSet.reverse;
+//    case (fileSet: FileSet, "pattern") =>
+//      fileSet.reverse;
   }, Help(Array(
-    HelpLine()
+    HelpLine("r", "recursive"),
+    HelpLine("r-3", "recursive"),
+    HelpLine("r2-3", "recursive"),
+    HelpLine("2-", "recursive")
   )));
+
+  private val OptionRPattern1 = "r-?(\\d+)".r;
+
+  private val OptionRPattern2 = "r(\\d+)-(\\d+)".r;
+
+  private val OptionRPattern3 = "r(\\d+)-".r;
 
 }
 

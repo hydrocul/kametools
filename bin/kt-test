@@ -1,0 +1,26 @@
+#!/bin/sh
+
+if [ -z "$KT_HOME" ] ; then
+  KT_HOME=$0
+  if [ -n "`readlink $KT_HOME`" ] ; then
+    if [ -x "`readlink $KT_HOME`" ] ; then
+      KT_HOME="`readlink $KT_HOME`"
+    else
+      KT_HOME="`dirname $KT_HOME`/`readlink $KT_HOME`"
+    fi
+  fi
+  KT_HOME="`dirname $KT_HOME`"
+  KT_HOME="`dirname $KT_HOME`"
+fi
+
+KT_JAVA_OPTS=
+if [ `uname` = "Darwin" ] ; then
+  KT_JAVA_OPTS="-Dfile.encoding=UTF-8"
+fi
+
+KT_JAVA_PATH_SEP=':'
+if [ "$OSTYPE" = cygwin ] ; then
+  KT_JAVA_PATH_SEP=';'
+fi
+
+java -Dkt.platform= $KT_JAVA_OPTS -cp "$KT_HOME/class:$KT_HOME/lib/*:$SCALA_HOME/lib/scala-library.jar" hydrocul.kametools.Main "$@"
