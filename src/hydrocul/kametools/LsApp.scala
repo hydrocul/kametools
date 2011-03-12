@@ -63,20 +63,6 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       case LsApp.OptionCPattern(c) => Some(LsApp(fileSet,
         c.toInt, timeFormat, lineFormat));
       case "-a" => Some(LsApp(fileSet, 0, timeFormat, lineFormat));
-      case "-r" => Some(LsApp(
-        FileSet.recursive(fileSet, 0, -1, false, false),
-        count, timeFormat, lineFormat));
-      case LsApp.OptionRPattern1(d) => Some(LsApp(
-        FileSet.recursive(fileSet, 0, d.toInt, false, false),
-        count, timeFormat, lineFormat));
-      case LsApp.OptionRPattern2(d1, d2) => Some(LsApp(
-        FileSet.recursive(fileSet, d1.toInt, d2.toInt, false, false),
-        count, timeFormat, lineFormat));
-      case LsApp.OptionRPattern3(d1) => Some(LsApp(
-        FileSet.recursive(fileSet, d1.toInt, -1, false, false),
-        count, timeFormat, lineFormat));
-      case "-v" => Some(LsApp(fileSet.reverse,
-        count, timeFormat, lineFormat));
       case "-p" => Some(App.NeedOfArgumentApp(
         pattern => LsApp(fileSet.filter(cond(_, pattern)),
         count, timeFormat, lineFormat)));
@@ -97,12 +83,6 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 object LsApp {
 
   private val OptionCPattern = "-c(\\d+)".r;
-
-  private val OptionRPattern1 = "-r-?(\\d+)".r;
-
-  private val OptionRPattern2 = "-r(\\d+)-(\\d+)".r;
-
-  private val OptionRPattern3 = "-r(\\d+)-".r;
 
 }
 

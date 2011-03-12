@@ -37,10 +37,10 @@ object Filter {
 
   private lazy val filters: List[Filter] =
     StartAppFilter ::
-    StandardFilter ::
     FileSet.filter ::
-    ObjectBankFilter ::
-    StartAppNoArgumentFilter :: Nil;
+    StandardFilter ::
+    StandardFilter2 ::
+    ObjectBankFilter :: Nil;
 
   import App.StartApp;
 
@@ -63,6 +63,22 @@ object Filter {
   }, Help(Array(
     HelpLine("class", "class")
   )));
+
+  private val StandardFilter2 = new Filter {
+
+    override def apply(obj: AnyRef, arg: String) = (obj, arg) match {
+      case (filter: Filter, arg) =>
+        filter(filter, arg);
+    }
+
+    override def isDefinedAt(obj: AnyRef, arg: String) = (obj, arg) match {
+      case (filter: Filter, arg) => filter.isDefinedAt(filter, arg);
+      case _ => false;
+    }
+
+    override def help: Help = Help(Array(HelpLine("<key>", "object")));
+
+  }
 
   private val ObjectBankFilter = new Filter {
 

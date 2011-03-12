@@ -364,14 +364,22 @@ object FileSet {
       FileSet.recursive(FileSet.OneFileSet(file), d1.toInt, -1, false, false);
     case (fileSet: FileSet, "reverse") =>
       fileSet.reverse;
-//    case (fileSet: FileSet, "pattern") =>
-//      fileSet.reverse;
+    case (fileSet: FileSet, "pattern") =>
+      Filter.create({
+        case (_, arg) => fileSet.filter(cond(_, arg));
+      }, Filter.Help(Array(Filter.HelpLine("<pattern>", "filter by pattern"))));
   }, Help(Array(
     HelpLine("r", "recursive"),
     HelpLine("r-3", "recursive"),
     HelpLine("r2-3", "recursive"),
     HelpLine("2-", "recursive")
   )));
+
+  private def cond(file: File, pattern: String): Boolean = {
+    val name = file.getName;
+    val patterns = pattern.split(" +");
+    !patterns.exists(p => name.indexOf(p) < 0);
+  }
 
   private val OptionRPattern1 = "r-?(\\d+)".r;
 
