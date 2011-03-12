@@ -40,30 +40,27 @@ object App {
       }
     }
   }
+*/
 
   def finish(obj: Any, env: App.Env){
     obj match {
       case app: App => app.exec(env);
       case StartApp => throw new Exception("No argument");
-      case obj => toApp(obj) match {
-        case Some(app) => app.exec(env);
-        case None => finishDefault(obj, env);
+      case obj => toApp(obj).exec(env);
+    }
+  }
+
+  private def toApp(obj: Any): App = {
+    obj match {
+      case obj: File => LsApp(FileSet.OneFileSet(obj));
+      case obj: FileSet => LsApp(obj);
+      case _ => new App {
+        override def exec(env: App.Env){
+          env.out.println(obj);
+        }
       }
     }
   }
-
-  private def toApp(obj: Any): Option[App] = {
-    obj match {
-      case obj: File => Some(LsApp(FileSet.OneFileSet(obj)));
-      case obj: FileSet => Some(LsApp(obj));
-      case _ => None;
-    }
-  }
-
-  private def finishDefault(obj: Any, env: App.Env){
-    env.out.println(obj);
-  }
-*/
 
   object StartApp extends java.io.Serializable;
 

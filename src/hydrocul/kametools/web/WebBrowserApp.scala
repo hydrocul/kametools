@@ -28,6 +28,7 @@ case class WebBrowserApp(url: String, query: Option[String] = None) extends App 
 
   }
 
+/*
   override def modify(arg: String): Option[App] = {
     arg match {
       case newQuery if(!query.isDefined) =>
@@ -35,6 +36,7 @@ case class WebBrowserApp(url: String, query: Option[String] = None) extends App 
       case _ => None;
     }
   }
+*/
 
 }
 

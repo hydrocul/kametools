@@ -342,5 +342,10 @@ object FileSet {
     name1.compareToIgnoreCase(name2);
   }
 
+  val filter = Filter.create({
+  }, Help(Array(
+    HelpLine()
+  )));
+
 }
 

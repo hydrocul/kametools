@@ -53,6 +53,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
+/*
   override def modify(arg: String): Option[App] = {
     arg match {
       case "-t" => Some(App.NeedOfArgumentApp(
@@ -89,6 +90,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     val patterns = pattern.split(" +");
     !patterns.exists(p => name.indexOf(p) < 0);
   }
+*/
 
 }
 

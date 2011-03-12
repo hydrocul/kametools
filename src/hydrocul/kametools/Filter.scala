@@ -28,6 +28,17 @@ object Filter {
 
   case class HelpLine(arg: String, explanation: String);
 
+  def next(obj: AnyRef, arg: String): AnyRef = {
+    filters.find(_.isDefinedAt(obj, arg)) match {
+      case Some(filter) => filter(obj, arg);
+      case None => throw new Exception("Unknown argument: " + arg);
+    }
+  }
+
+  private val filters: List[Filter] =
+    StartAppFilter ::
+    ObjectBankFilter :: Nil;
+
   import App.StartApp;
 
   private val StartAppFilter = create({
@@ -35,6 +46,8 @@ object Filter {
       (new File(arg.substring(2))).getAbsoluteFile;
     case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
       (new File(arg)).getAbsoluteFile;
+    case (StartApp, arg) =>
+      throw new Exception("No argument");
 /*
     case (StartApp, "daemon") =>
       OpenApp.FileOpenReceiver;
