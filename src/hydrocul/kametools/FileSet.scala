@@ -368,11 +368,18 @@ object FileSet {
       Filter.create({
         case (_, arg) => fileSet.filter(cond(_, arg));
       }, Filter.Help(Array(Filter.HelpLine("<pattern>", "filter by pattern"))));
+    case (fileSet: FileSet, "-p") =>
+      Filter.create({
+        case (_, arg) => fileSet.filter(cond(_, arg));
+      }, Filter.Help(Array(Filter.HelpLine("<pattern>", "filter by pattern"))));
   }, Help(Array(
     HelpLine("r", "recursive"),
     HelpLine("r-3", "recursive"),
     HelpLine("r2-3", "recursive"),
-    HelpLine("2-", "recursive")
+    HelpLine("r2-", "recursive"),
+    HelpLine("reverse", "reverse"),
+    HelpLine("pattern", "filter by rpattern"),
+    HelpLine("-p", "filter by pattern"),
   )));
 
   private def cond(file: File, pattern: String): Boolean = {

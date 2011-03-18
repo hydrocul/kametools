@@ -14,13 +14,13 @@ trait Filter {
 
 object Filter {
 
-  def create(pf: PartialFunction[(AnyRef, String), AnyRef], helpObject: Help) = new Filter {
+  def create(pf: PartialFunction[(AnyRef, String), AnyRef], help_: Help) = new Filter {
 
     override def apply(obj: AnyRef, arg: String): AnyRef = pf.apply((obj, arg));
 
     override def isDefinedAt(obj: AnyRef, arg: String): Boolean = pf.isDefinedAt((obj, arg));
 
-    override def help = helpObject;
+    override def help = help_;
 
   }
 

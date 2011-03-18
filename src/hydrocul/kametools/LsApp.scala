@@ -63,18 +63,9 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       case LsApp.OptionCPattern(c) => Some(LsApp(fileSet,
         c.toInt, timeFormat, lineFormat));
       case "-a" => Some(LsApp(fileSet, 0, timeFormat, lineFormat));
-      case "-p" => Some(App.NeedOfArgumentApp(
-        pattern => LsApp(fileSet.filter(cond(_, pattern)),
-        count, timeFormat, lineFormat)));
       case "-o" => Some(OpenApp(fileSet));
       case _ => None;
     }
-  }
-
-  private def cond(file: File, pattern: String): Boolean = {
-    val name = file.getName;
-    val patterns = pattern.split(" +");
-    !patterns.exists(p => name.indexOf(p) < 0);
   }
 */
 
