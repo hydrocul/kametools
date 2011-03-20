@@ -4,11 +4,9 @@ import java.io.File;
 
 trait Filter {
 
-  def apply(arg: String, env: App.Env): AnyRef;
+  def apply(arg: String): AnyRef;
 
   def isDefinedAt(arg: String): Boolean;
-
-  def finish(env: App.Env): Option[AnyRef];
 
   def help: Iterable[Filter.HelpLine];
 
@@ -24,12 +22,12 @@ object Filter {
 
   case class HelpLine(arg: String, explanation: String);
 
-  def next(obj: AnyRef, arg: String, env: App.Env): AnyRef = {
+  def next(obj: AnyRef, arg: String): AnyRef = {
     filters.foreach { filter =>
-      filter.filter match {
+      filter.filter(obj) match {
         case Some(filter) =>
           if(filter.isDefinedAt(arg)){
-            return filter(arg, env);
+            return filter(arg);
           }
         case _ => ;
       }
@@ -37,84 +35,86 @@ object Filter {
     throw new Exception("Unknown argument: " + arg);
   }
 
-  def finish(obj: AnyRef): AnyRef = {
-    filters.foreach { filter =>
-      filter.filter match {
-        case Some(filter) =>
-          return filter.finish(env);
-        case _ => ;
-      }
+  def finish(obj: AnyRef){
+    obj match {
+      case app: App => app.exec();
+      case StartApp => throw new Exception("No argument");
+      case obj => App.toApp(obj).exec();
     }
   }
 
-  private lazy val filters: List[Filter] =
+  object StartApp extends java.io.Serializable;
+
+  def create(f: Function[AnyRef, Option[Filter]]) = new FilterContainer(){
+
+    override def filter(obj: AnyRef) = f(obj);
+
+  }
+
+  def create(pf: PartialFunction[String, AnyRef], help_ : Iterable[HelpLine]) = new Filter(){
+
+    override def apply(arg: String): AnyRef = pf.apply(arg);
+
+    override def isDefinedAt(arg: String): Boolean = pf.isDefinedAt(arg);
+
+    override def help: Iterable[HelpLine] = help_;
+
+  }
+
+  private lazy val filters: List[FilterContainer] =
     StartAppFilter ::
 //    FileSet.filter ::
     StandardFilter ::
-    ObjectBankFilter :: Nil;
+    ObjectBankFilter ::
+    ArgumentExpectedFilter :: Nil;
 
-  import App.StartApp;
-
-  private val StartAppFilter = create({
-    case (StartApp, arg) if(arg.startsWith("./")) =>
-      (new File(arg.substring(2))).getAbsoluteFile;
-    case (StartApp, arg) if(arg.startsWith("../") || arg.startsWith("/")) =>
-      (new File(arg)).getAbsoluteFile;
-  }, Help(Array(
-    HelpLine("<path>", "file")
-  )));
-
-  private val StandardFilter = create({
-    case (obj, "class") =>
-      obj.getClass();
-  }, Help(Array(
-    HelpLine("class", "class")
-  )));
-
-  private val ObjectBankFilter = new Filter {
-
-    override def apply(obj: AnyRef, arg: Optoin[String]) = (obj, arg) match {
-      case (StartApp, Some(arg)) => ObjectBank.default.get(arg) match {
-        case Some(o) => o;
-        case None => throw new Exception("Unknown object: " + arg);
-      }
+  private val StartAppFilter = create({ obj =>
+    obj match {
+      case StartApp => Some(create({
+        case arg if(arg.startsWith("./")) =>
+          (new File(arg.substring(2))).getAbsoluteFile;
+        case arg if(arg.startsWith("../") || arg.startsWith("/")) =>
+          (new File(arg)).getAbsoluteFile;
+      }, Array(
+        HelpLine("<path>", "file")
+      )));
+      case _ => None;
     }
+  });
 
-    override def isDefinedAt(obj: AnyRef, arg: Opton[String]) = (obj, arg) match {
-      case (StartApp, Some(arg)) => ObjectBank.default.isDefinedAt(arg);
-      case _ => false;
+  private val StandardFilter = create({ obj =>
+    obj match {
+      case obj => Some(create({
+        case "class" => obj.getClass();
+      }, Array(
+        HelpLine("class", "class")
+      )));
     }
+  });
 
-    override def help: Help = Help(Array(HelpLine("<key>", "object")));
+  private val ObjectBankFilter = create({ obj =>
+    obj match {
+      case StartApp => Some(new Filter {
 
-  }
+        override def apply(arg: String) = ObjectBank.default.get(arg) match {
+          case Some(o) => o;
+          case None => throw new Exception("Unknown object: " + arg);
+        }
 
-  private val ArgumentExpectedFilter = new Filter {
+        override def isDefinedAt(arg: String) = ObjectBank.default.isDefinedAt(arg);
 
-    override def apply(obj: AnyRef, arg: Optoin[String]) = (obj, arg) match {
-      case (obj: ArgumentExpected, Some(arg)) => obj.apply(arg);
+        override def help: Iterable[HelpLine] = Array(HelpLine("<key>", "object"));
+
+      });
+      case _ => None;
     }
+  });
 
-    override def isDefinedAt(obj: AnyRef, arg: Opton[String]) = (obj, arg) match {
-      case (obj: ArgumentExpected, Some(arg)) => obj.isDefinedAt(arg);
-      case _ => false;
+  private val ArgumentExpectedFilter = create({ obj =>
+    obj match {
+      case obj: Filter => Some(obj);
+      case _ => None;
     }
-
-    override def help: Help = 
-
-  }
-
-  trait ArgumentExpected {
-
-    def apply(arg: String): AnyRef;
-
-    def isDefinedAt(arg: String): Boolean;
-
-    def help: HelpLine;
-
-  }
-
-  def createArgumentExpectedObject: AnyRef = {
-  }
+  });
 
 }

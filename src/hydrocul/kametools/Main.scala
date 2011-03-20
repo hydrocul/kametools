@@ -13,11 +13,9 @@ object Main {
     System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
     System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "fatal");
 
-    val env = new App.StandardEnv();
-
-    val app = args.foldLeft[AnyRef](App.StartApp)((obj: AnyRef, arg: String) =>
-      Filter.next(obj, arg, env));
-    Filter.finish(app, env);
+    val app = args.foldLeft[AnyRef](Filter.StartApp)((obj: AnyRef, arg: String) =>
+      Filter.next(obj, arg));
+    Filter.finish(app);
 
   }
 

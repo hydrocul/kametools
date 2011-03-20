@@ -6,33 +6,32 @@ import java.io.StringWriter;
 
 trait App {
 
-  def exec(env: App.Env);
+  def exec();
 
 }
 
 object App {
 
-  def finish(obj: Any, env: App.Env){
+  def toApp(obj: Any): App = {
     obj match {
-      case app: App => app.exec(env);
-      case StartApp => throw new Exception("No argument");
-      case obj => toApp(obj).exec(env);
-    }
-  }
-
-  private def toApp(obj: Any): App = {
-    obj match {
-      case obj: File => LsApp(FileSet.OneFileSet(obj));
-      case obj: FileSet => LsApp(obj);
+//      case obj: File => LsApp(FileSet.OneFileSet(obj));
+//      case obj: FileSet => LsApp(obj);
       case _ => new App {
-        override def exec(env: App.Env){
+        override def exec(){
           env.out.println(obj);
         }
       }
     }
   }
 
-  object StartApp extends java.io.Serializable;
+  def env: Env = _env;
+
+  private var _env: Env = new StandardEnv();
+
+  // for test
+  def setEnv(env_ : Env){
+    _env = env_;
+  }
 
   trait Env {
 
