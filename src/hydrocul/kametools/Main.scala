@@ -16,8 +16,8 @@ object Main {
     val env = new App.StandardEnv();
 
     val app = args.foldLeft[AnyRef](App.StartApp)((obj: AnyRef, arg: String) =>
-      Filter.next(obj, arg));
-    App.finish(app, env);
+      Filter.next(obj, arg, env));
+    Filter.finish(app, env);
 
   }
 
