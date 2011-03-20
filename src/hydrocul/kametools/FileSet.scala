@@ -342,9 +342,9 @@ object FileSet {
     name1.compareToIgnoreCase(name2);
   }
 
-  import Filter.Help;
   import Filter.HelpLine;
 
+/*
   val filter = Filter.create({
     case (fileSet: FileSet, "r") =>
       FileSet.recursive(fileSet, 0, -1, false, false);
@@ -367,20 +367,20 @@ object FileSet {
     case (fileSet: FileSet, "pattern") =>
       Filter.create({
         case (_, arg) => fileSet.filter(cond(_, arg));
-      }, Filter.Help(Array(Filter.HelpLine("<pattern>", "filter by pattern"))));
+      }, Array(HelpLine("<pattern>", "filter by pattern")));
     case (fileSet: FileSet, "-p") =>
       Filter.create({
         case (_, arg) => fileSet.filter(cond(_, arg));
-      }, Filter.Help(Array(Filter.HelpLine("<pattern>", "filter by pattern"))));
-  }, Help(Array(
+      }, Array(HelpLine("<pattern>", "filter by pattern")));
+  }, Array(
     HelpLine("r", "recursive"),
     HelpLine("r-3", "recursive"),
     HelpLine("r2-3", "recursive"),
     HelpLine("r2-", "recursive"),
     HelpLine("reverse", "reverse"),
     HelpLine("pattern", "filter by rpattern"),
-    HelpLine("-p", "filter by pattern"),
-  )));
+    HelpLine("-p", "filter by pattern")
+  ));
 
   private def cond(file: File, pattern: String): Boolean = {
     val name = file.getName;
@@ -393,6 +393,7 @@ object FileSet {
   private val OptionRPattern2 = "r(\\d+)-(\\d+)".r;
 
   private val OptionRPattern3 = "r(\\d+)-".r;
+*/
 
 }
 
