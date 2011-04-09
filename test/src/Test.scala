@@ -7,7 +7,7 @@ object Test {
 
     KTest.test();
     hydrocul.kametools.ObjectBankTest.test();
-    hydrocul.kametools.FileSetTest.test();
+//    hydrocul.kametools.FileSetTest.test();
 //    hydrocul.kametools.PrintAppTest.test();
 //    hydrocul.kametools.LsAppTest.test();
 
