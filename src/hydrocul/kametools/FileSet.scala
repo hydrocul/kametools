@@ -344,7 +344,16 @@ object FileSet {
 
   import Filter.HelpLine;
 
-/*
+  val filterContainer = Filter.createContainer({ obj =>
+    obj match {
+      case fileSet: FileSet => Some(Filter.create({
+
+
+      }));
+      case file: File => filterContainer.filter(FileSet.OneFileSet(file));
+    }
+  });
+
   val filter = Filter.create({
     case (fileSet: FileSet, "r") =>
       FileSet.recursive(fileSet, 0, -1, false, false);
@@ -393,7 +402,6 @@ object FileSet {
   private val OptionRPattern2 = "r(\\d+)-(\\d+)".r;
 
   private val OptionRPattern3 = "r(\\d+)-".r;
-*/
 
 }
 

@@ -45,7 +45,7 @@ object Filter {
 
   object StartApp extends java.io.Serializable;
 
-  def create(f: Function[AnyRef, Option[Filter]]) = new FilterContainer(){
+  def createContainer(f: Function[AnyRef, Option[Filter]]) = new FilterContainer(){
 
     override def filter(obj: AnyRef) = f(obj);
 
@@ -68,7 +68,7 @@ object Filter {
     ObjectBankFilter ::
     ArgumentExpectedFilter :: Nil;
 
-  private val StartAppFilter = create({ obj =>
+  private val StartAppFilter = createContainer({ obj =>
     obj match {
       case StartApp => Some(create({
         case arg if(arg.startsWith("./")) =>
@@ -82,7 +82,7 @@ object Filter {
     }
   });
 
-  private val StandardFilter = create({ obj =>
+  private val StandardFilter = createContainer({ obj =>
     obj match {
       case obj => Some(create({
         case "class" => obj.getClass();
@@ -92,7 +92,7 @@ object Filter {
     }
   });
 
-  private val ObjectBankFilter = create({ obj =>
+  private val ObjectBankFilter = createContainer({ obj =>
     obj match {
       case StartApp => Some(new Filter {
 
@@ -110,7 +110,7 @@ object Filter {
     }
   });
 
-  private val ArgumentExpectedFilter = create({ obj =>
+  private val ArgumentExpectedFilter = createContainer({ obj =>
     obj match {
       case obj: Filter => Some(obj);
       case _ => None;
