@@ -53,6 +53,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
   }
 
+/*
   override def modify(arg: String): Option[App] = {
     arg match {
       case "-t" => Some(App.NeedOfArgumentApp(
@@ -89,11 +90,29 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     val patterns = pattern.split(" +");
     !patterns.exists(p => name.indexOf(p) < 0);
   }
+*/
 
 }
 
 object LsApp {
 
+  def create(args: Array[String]): LsApp =
+    create(LsApp(FileSet.empty), args.toList);
+
+  private def create(app: LsApp, args: List[String]): LsApp = {
+    if(args.isEmpty){
+      app;
+    } else {
+      args match {
+        case "-t" :: format :: tail => create(LsApp(app.fileSet, app.count, format, app.lineFormat), tail);
+        case "-f" :: format :: tail => create(LsApp(app.fileSet, app.count, app.timeFormat, format), tail);
+        case "-a" :: tail => create(LsApp(app.fileSet, 0, app.timeFormat, app.lineFormat), tail);
+作りかけ
+      }
+    }
+  }
+
+/*
   private val OptionCPattern = "-c(\\d+)".r;
 
   private val OptionRPattern1 = "-r-?(\\d+)".r;
@@ -101,6 +120,7 @@ object LsApp {
   private val OptionRPattern2 = "-r(\\d+)-(\\d+)".r;
 
   private val OptionRPattern3 = "-r(\\d+)-".r;
+*/
 
 }
 
