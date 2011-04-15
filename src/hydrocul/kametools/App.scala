@@ -12,6 +12,15 @@ trait App {
 
 object App {
 
+  def exec(args: Array[String]){
+    val app = args.toList match {
+      case "ls" :: tail => LsApp.create(tail);
+      case _ => throw new Exception("Not Found: " + args);
+    }
+    val env = new StandardEnv();
+    app.exec(env);
+  }
+
   trait Env {
 
     def out: PrintWriter;

@@ -15,8 +15,7 @@ object Main {
 
     val env = new App.StandardEnv();
 
-    App.finish(args.foldLeft[Any](App.StartApp)((obj: Any, arg: String) =>
-      App.next(obj, arg, env)), env);
+    App.exec(args);
 
   }
 

@@ -15,7 +15,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 case class LsApp(fileSet: FileSet, count: Int = 50,
-  timeFormat: String = "%Y-%m-%d-%H-%M-%S",
+  timeFormat: String = "%Y-%m-%d-%H%M%S",
   lineFormat: String = "%1 %2  [%3]") extends App {
 
   override def exec(env: App.Env){
@@ -57,37 +57,34 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
 object LsApp {
 
-  def create(args: Array[String]): LsApp =
-    create(LsApp(FileSet.empty), args.toList);
+  def create(args: List[String]): LsApp = create(LsApp(FileSet.empty), args.toList);
 
   private def create(app: LsApp, args: List[String]): LsApp = {
-    if(args.isEmpty){
-      app;
-    } else {
-      args match {
-        case "-t" :: format :: tail => create(LsApp(app.fileSet, app.count,
-          format, app.lineFormat), tail);
-        case "-f" :: format :: tail => create(LsApp(app.fileSet, app.count,
-          app.timeFormat, format), tail);
-        case "-a" :: tail => create(LsApp(app.fileSet, 0,
-          app.timeFormat, app.lineFormat), tail);
-        case "-r" :: tail => create(LsApp(FileSet.recursive(app.fileSet, 0, -1,
-          false, false), app.count, app.timeFormat, app.lineFormat), tail);
-        case OptionCPattern(d) :: tail => create(LsApp(app.fileSet, d.toInt,
-          app.timeFormat, app.lineFormat), tail);
-        case OptionRPattern1(d1) :: tail => create(LsApp(FileSet.recursive(app.fileSet,
-          0, d1.toInt, false, false), app.count,
-          app.timeFormat, app.lineFormat), tail);
-        case OptionRPattern2(d1, d2) :: tail => create(LsApp(FileSet.recursive(app.fileSet,
-          d1.toInt, d2.toInt, false, false), app.count,
-          app.timeFormat, app.lineFormat), tail);
-        case OptionRPattern3(d1) :: tail => create(LsApp(FileSet.recursive(app.fileSet,
-          d1.toInt, -1, false, false), app.count,
-          app.timeFormat, app.lineFormat), tail);
-        case "-p" :: pattern :: tail => create(LsApp(app.fileSet.filter(cond(_, pattern)),
-          app.count, app.timeFormat, app.lineFormat), tail);
-        case _ => throw new Exception("Unknown argument: " + args);
-      }
+    args match {
+      case "-t" :: format :: tail => create(LsApp(app.fileSet, app.count,
+        format, app.lineFormat), tail);
+      case "-f" :: format :: tail => create(LsApp(app.fileSet, app.count,
+        app.timeFormat, format), tail);
+      case "-a" :: tail => create(LsApp(app.fileSet, 0,
+        app.timeFormat, app.lineFormat), tail);
+      case "-r" :: tail => create(LsApp(FileSet.recursive(app.fileSet, 0, -1,
+        false, false), app.count, app.timeFormat, app.lineFormat), tail);
+      case OptionCPattern(d) :: tail => create(LsApp(app.fileSet, d.toInt,
+        app.timeFormat, app.lineFormat), tail);
+      case OptionRPattern1(d1) :: tail => create(LsApp(app.fileSet.recursive(
+        0, d1.toInt, false, false), app.count,
+        app.timeFormat, app.lineFormat), tail);
+      case OptionRPattern2(d1, d2) :: tail => create(LsApp(app.fileSet.recursive(
+        d1.toInt, d2.toInt, false, false), app.count,
+        app.timeFormat, app.lineFormat), tail);
+      case OptionRPattern3(d1) :: tail => create(LsApp(app.fileSet.recursive(
+        d1.toInt, -1, false, false), app.count,
+        app.timeFormat, app.lineFormat), tail);
+      case "-p" :: pattern :: tail => create(LsApp(app.fileSet.filter(cond(_, pattern)),
+        app.count, app.timeFormat, app.lineFormat), tail);
+      case arg :: tail => create(LsApp(FileSet.concat(app.fileSet, getFileSet(arg)),
+        app.count, app.timeFormat, app.lineFormat), tail);
+      case Nil => app;
     }
   }
 
@@ -95,6 +92,24 @@ object LsApp {
     val name = file.getName;
     val patterns = pattern.split(" +");
     !patterns.exists(p => name.indexOf(p) < 0);
+  }
+
+  private def getFileSet(arg: String): FileSet = {
+    val (a, isDir) = if(arg.endsWith("/"))
+      (arg.substring(0, arg.length - 1), true)
+    else
+      (arg, false);
+    val f = new File(a);
+    val fs = if(f.exists){
+      FileSet(f);
+    } else {
+      ObjectBank.default.get(a) match {
+        case Some(f: FileSet) => f;
+        case Some(f: File) => FileSet(f);
+        case _ => throw new Exception("Not Found: " + a);
+      }
+    }
+    if(isDir) fs.getChildren else fs;
   }
 
   private val OptionCPattern = "-c(\\d+)".r;

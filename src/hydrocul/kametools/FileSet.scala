@@ -45,11 +45,18 @@ trait FileSet extends Iterable[File] with IterableLike[File, FileSet] {
    * 取得する。ディレクトリでない場合または
    * 単一のFileでない場合は、getListと同じ内容を返す。
    */
+  def getChildren: FileSet = getChildren(false);
+
   def getChildren(reverseFlag: Boolean): FileSet = {
     if(!isSingleFile){
       return this;
     }
     FileSet.DirFileSet(head, reverseFlag);
+  }
+
+  def recursive(depthStart: Int, depthEnd: Int,
+    reverseDirFlag: Boolean, reverseAllFlag: Boolean): FileSet = {
+    FileSet.recursive(this, depthStart, depthEnd, reverseDirFlag, reverseAllFlag);
   }
 
   override def iterator: Iterator[File] = new FileSetIterator();
@@ -297,21 +304,21 @@ object FileSet {
         } else {
           val f = files.head;
           if(depthStart > 0){
-            concat(recursive(DirFileSet(f, reverseDirFlag),
+            concat(FileSet.recursive(DirFileSet(f, reverseDirFlag),
               depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
-              recursive(files.tail, depthStart, depthEnd,
+              files.tail.recursive(depthStart, depthEnd,
               reverseDirFlag, reverseAllFlag));
           } else if(reverseAllFlag){
-            concat(concat(recursive(DirFileSet(f, reverseDirFlag),
+            concat(concat(FileSet.recursive(DirFileSet(f, reverseDirFlag),
               depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
               OneFileSet(f)),
-              recursive(files.tail, depthStart, depthEnd,
+              files.tail.recursive( depthStart, depthEnd,
               reverseDirFlag, reverseAllFlag));
           } else {
             ConcatFileSet(OneFileSet(f),
-              ConcatFileSet(recursive(DirFileSet(f, reverseDirFlag),
+              ConcatFileSet(FileSet.recursive(DirFileSet(f, reverseDirFlag),
               depthStart - 1, depthEnd - 1, reverseDirFlag, reverseAllFlag),
-              recursive(files.tail, depthStart, depthEnd,
+              files.tail.recursive(depthStart, depthEnd,
               reverseDirFlag, reverseAllFlag)));
           }
         }
