@@ -57,7 +57,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
 object LsApp {
 
-  def create(args: List[String]): LsApp = create(LsApp(FileSet.empty), args.toList);
+  def create(args: List[String]): LsApp = create(LsApp(FileSet.empty), args);
 
   private def create(app: LsApp, args: List[String]): LsApp = {
     args match {
@@ -94,7 +94,7 @@ object LsApp {
     !patterns.exists(p => name.indexOf(p) < 0);
   }
 
-  private def getFileSet(arg: String): FileSet = {
+  def getFileSet(arg: String): FileSet = {
     val (a, isDir) = if(arg.endsWith("/"))
       (arg.substring(0, arg.length - 1), true)
     else
