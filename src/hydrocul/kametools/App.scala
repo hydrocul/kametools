@@ -21,6 +21,7 @@ object App {
       case "pull" :: tail => PullApp.create(tail);
       case "setSyncTarget" :: tail => SetSyncTargetApp.create(tail);
       case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
+      case "clearSyncFile" :: tail => ClearSyncFileApp.create(tail);
       case "autoLauncher" :: tail => AutoLauncherApp.create(tail);
       case args => LsApp.create(args);
     }
