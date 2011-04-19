@@ -19,8 +19,15 @@ case class AutoLauncherApp(downloadDir: String) extends App {
       files;
     } else {
       val openingFile = openingFiles.head;
-      OpenApp.openDefault(openingFile, env);
-      openingFile :: files;
+      val size = openingFile.length;
+      Thread.sleep(1000);
+      val size2 = if(openingFile.exists) openingFile.length else 0;
+      if(size!=size2 || !openingFile.exists){
+        files;
+      } else {
+        OpenApp.openDefault(openingFile, env);
+        openingFile :: files;
+      }
     }
   }
 
