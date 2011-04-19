@@ -57,7 +57,7 @@ buildlib_clean
 ################################
 *)
 ################################
-echo "Usage: ./make.sh [compile|test|build|scaladoc|clean]"
+echo "Usage: ./make.sh [compile|build-jar|build-fatjar|scaladoc|clean]"
 echo "Default action is compile."
 . make.sh compile
 
