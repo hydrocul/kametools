@@ -19,10 +19,12 @@ object App {
       case "pull" :: tail => PullApp.create(tail);
       case "setSyncTarget" :: tail => SetSyncTargetApp.create(tail);
       case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
-      case _ => throw new Exception("Not Found: " + args);
+      case "autoLauncher" :: tail => AutoLauncherApp.create(tail);
+      case _ => throw new Exception("Not Found: " + args.toList);
     }
     val env = new StandardEnv();
     app.exec(env);
+    
     println(env.shellScriptCode);
   }
 

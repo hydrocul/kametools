@@ -2,7 +2,7 @@ package hydrocul.kametools;
 
 import java.io.File;
 
-case class AutoLauncher(downloadDir: String) extends App {
+case class AutoLauncherApp(downloadDir: String) extends App {
 
   override def exec(env: App.Env){
     var files = getExistingFiles();
@@ -15,9 +15,13 @@ case class AutoLauncher(downloadDir: String) extends App {
   private def waitSub(env: App.Env, files: List[File]): List[File] = {
     val newFiles = getExistingFiles();
     val openingFiles = newFiles.diff(files);
-    val openingFile = openingFiles.head;
-    OpenApp.openDefault(openingFile, env);
-    openingFile :: files;
+    if(openingFiles.isEmpty){
+      files;
+    } else {
+      val openingFile = openingFiles.head;
+      OpenApp.openDefault(openingFile, env);
+      openingFile :: files;
+    }
   }
 
   private def getExistingFiles(): List[File] =
@@ -25,5 +29,14 @@ case class AutoLauncher(downloadDir: String) extends App {
 
 }
 
-object AutoLauncher {
+object AutoLauncherApp {
+
+  def create(args: List[String]): AutoLauncherApp = {
+    args match {
+      case downloadDir :: Nil =>
+        AutoLauncherApp(downloadDir);
+      case _ => throw new Exception("Unknown arguments: " + args);
+    }
+  }
+
 }

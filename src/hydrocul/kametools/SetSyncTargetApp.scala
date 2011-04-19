@@ -12,7 +12,7 @@ case class SetSyncTargetApp(name: String, targetDir: String, sshOption: String) 
 
 object SetSyncTargetApp {
 
-  def create(args: List[String]): App = {
+  def create(args: List[String]): SetSyncTargetApp = {
     args match {
       case name :: targetDir :: Nil =>
         SetSyncTargetApp(name, targetDir, "");
