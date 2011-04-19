@@ -31,13 +31,11 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       env.out.println(s);
     }
 
-    val fileSet2 = if(fileSet==FileSet.empty) FileSet(new File("./")).getChildren else fileSet;
-
     if(count <= 0){
-      fileSet2.foreach { printFile _ }
+      fileSet.foreach { printFile _ }
     } else {
       var i = 0;
-      var fs = fileSet2;
+      var fs = fileSet;
       var existsNext = !fs.isEmpty;
       while(existsNext){
         printFile(fs.head);
@@ -59,36 +57,37 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
 object LsApp {
 
-  def create(args: List[String]): LsApp = create(LsApp(FileSet.empty), args);
+  def create(args: List[String]): LsApp = create(LsApp(FileSet.empty), false, args);
 
-  private def create(app: LsApp, args: List[String]): LsApp = {
+  private def create(app: LsApp, argExists: Boolean, args: List[String]): LsApp = {
     args match {
       case "-t" :: format :: tail => create(LsApp(app.fileSet, app.count,
-        format, app.lineFormat), tail);
+        format, app.lineFormat), argExists, tail);
       case "-f" :: format :: tail => create(LsApp(app.fileSet, app.count,
-        app.timeFormat, format), tail);
+        app.timeFormat, format), argExists, tail);
       case "-a" :: tail => create(LsApp(app.fileSet, 0,
-        app.timeFormat, app.lineFormat), tail);
+        app.timeFormat, app.lineFormat), argExists, tail);
       case "-R" :: tail => create(LsApp(FileSet.recursive(app.fileSet, 0, -1,
-        false, false), app.count, app.timeFormat, app.lineFormat), tail);
+        false, false), app.count, app.timeFormat, app.lineFormat), argExists, tail);
       case OptionCPattern(d) :: tail => create(LsApp(app.fileSet, d.toInt,
-        app.timeFormat, app.lineFormat), tail);
+        app.timeFormat, app.lineFormat), argExists, tail);
       case OptionRPattern1(d1) :: tail => create(LsApp(app.fileSet.recursive(
         0, d1.toInt, false, false), app.count,
-        app.timeFormat, app.lineFormat), tail);
+        app.timeFormat, app.lineFormat), argExists, tail);
       case OptionRPattern2(d1, d2) :: tail => create(LsApp(app.fileSet.recursive(
         d1.toInt, d2.toInt, false, false), app.count,
-        app.timeFormat, app.lineFormat), tail);
+        app.timeFormat, app.lineFormat), argExists, tail);
       case OptionRPattern3(d1) :: tail => create(LsApp(app.fileSet.recursive(
         d1.toInt, -1, false, false), app.count,
-        app.timeFormat, app.lineFormat), tail);
+        app.timeFormat, app.lineFormat), argExists, tail);
       case "-p" :: pattern :: tail => create(LsApp(app.fileSet.filter(cond(_, pattern)),
-        app.count, app.timeFormat, app.lineFormat), tail);
+        app.count, app.timeFormat, app.lineFormat), argExists, tail);
       case "-r" :: tail => create(LsApp(app.fileSet.reverse, app.count,
-        app.timeFormat, app.lineFormat), tail);
+        app.timeFormat, app.lineFormat), argExists, tail);
       case arg :: tail => create(LsApp(FileSet.concat(app.fileSet, getFileSet(arg)),
-        app.count, app.timeFormat, app.lineFormat), tail);
-      case Nil => app;
+        app.count, app.timeFormat, app.lineFormat), true, tail);
+      case Nil => if(argExists) app else LsApp(FileSet(new File("./")).getChildren,
+        app.count, app.timeFormat, app.lineFormat);
     }
   }
 
