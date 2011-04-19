@@ -6,15 +6,15 @@ case class PutApp(fileSet: FileSet, target: SyncTarget) extends App {
 
   override def exec(env: App.Env){
     val file = fileSet.head;
-    val name = file.getName;
-    val syncFile = SyncFile(file, target);
+    val nameOnTarget = ObjectBank.default.put(fileSet);
+    val syncFile = SyncFile(file, target, nameOnTarget);
     val syncFiles = ObjectBank.default.getOrElse("_syncFiles", Vector.empty[SyncFile]);
     val newSyncFiles = syncFiles :+ syncFile;
     ObjectBank.default.put("_syncFiles", Some(newSyncFiles));
     val script = "rsync -tv " +
       (if(target.sshOption.isEmpty) "" else "-e \"ssh " + target.sshOption + "\"") +
       " " + App.escapeFilePath(file.getAbsolutePath) +
-      " " + App.escapeFilePath(target.targetDir + name);
+      " " + App.escapeFilePath(target.targetDir + nameOnTarget);
     env.shellScriptWriter.println(script);
   }
 

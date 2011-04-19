@@ -2,4 +2,4 @@ package hydrocul.kametools;
 
 import java.io.File;
 
-case class SyncFile(file: File, target: SyncTarget);
+case class SyncFile(file: File, target: SyncTarget, nameOnTarget: String);

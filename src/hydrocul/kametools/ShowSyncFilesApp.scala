@@ -6,7 +6,7 @@ case class ShowSyncFilesApp() extends App {
     val syncFiles = ObjectBank.default.getOrElse("_syncFiles", Vector.empty[SyncFile]);
     syncFiles.map({sf =>
       val key = ObjectBank.default.put(sf);
-      key + ": " + sf.file.getAbsolutePath + " -> " + sf.target;
+      key + ": " + sf.file.getAbsolutePath + " -> " + sf.target + " " + sf.nameOnTarget;
     }).foreach(env.out.println(_));
   }
 

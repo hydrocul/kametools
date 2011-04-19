@@ -6,11 +6,10 @@ case class PullApp(syncFile: SyncFile) extends App {
 
   override def exec(env: App.Env){
     val file = syncFile.file;
-    val name = file.getName;
     val target = syncFile.target;
     val script = "rsync -tv " +
       (if(target.sshOption.isEmpty) "" else "-e \"ssh " + target.sshOption + "\"") +
-      " " + App.escapeFilePath(target.targetDir + name) + 
+      " " + App.escapeFilePath(target.targetDir + syncFile.nameOnTarget) + 
       " " + App.escapeFilePath(file.getAbsolutePath);
     env.shellScriptWriter.println(script);
   }

@@ -31,11 +31,13 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
       env.out.println(s);
     }
 
+    val fileSet2 = if(fileSet==FileSet.empty) FileSet(new File("./")).getChildren else fileSet;
+
     if(count <= 0){
-      fileSet.foreach { printFile _ }
+      fileSet2.foreach { printFile _ }
     } else {
       var i = 0;
-      var fs = fileSet;
+      var fs = fileSet2;
       var existsNext = !fs.isEmpty;
       while(existsNext){
         printFile(fs.head);
@@ -67,7 +69,7 @@ object LsApp {
         app.timeFormat, format), tail);
       case "-a" :: tail => create(LsApp(app.fileSet, 0,
         app.timeFormat, app.lineFormat), tail);
-      case "-r" :: tail => create(LsApp(FileSet.recursive(app.fileSet, 0, -1,
+      case "-R" :: tail => create(LsApp(FileSet.recursive(app.fileSet, 0, -1,
         false, false), app.count, app.timeFormat, app.lineFormat), tail);
       case OptionCPattern(d) :: tail => create(LsApp(app.fileSet, d.toInt,
         app.timeFormat, app.lineFormat), tail);
@@ -82,6 +84,8 @@ object LsApp {
         app.timeFormat, app.lineFormat), tail);
       case "-p" :: pattern :: tail => create(LsApp(app.fileSet.filter(cond(_, pattern)),
         app.count, app.timeFormat, app.lineFormat), tail);
+      case "-r" :: tail => create(LsApp(app.fileSet.reverse, app.count,
+        app.timeFormat, app.lineFormat), tail);
       case arg :: tail => create(LsApp(FileSet.concat(app.fileSet, getFileSet(arg)),
         app.count, app.timeFormat, app.lineFormat), tail);
       case Nil => app;
@@ -114,11 +118,11 @@ object LsApp {
 
   private val OptionCPattern = "-c(\\d+)".r;
 
-  private val OptionRPattern1 = "-r-?(\\d+)".r;
+  private val OptionRPattern1 = "-R-?(\\d+)".r;
 
-  private val OptionRPattern2 = "-r(\\d+)-(\\d+)".r;
+  private val OptionRPattern2 = "-R(\\d+)-(\\d+)".r;
 
-  private val OptionRPattern3 = "-r(\\d+)-".r;
+  private val OptionRPattern3 = "-R(\\d+)-".r;
 
 }
 
