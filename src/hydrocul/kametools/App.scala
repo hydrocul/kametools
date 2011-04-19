@@ -1,6 +1,8 @@
 package hydrocul.kametools;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -24,8 +26,23 @@ object App {
     }
     val env = new StandardEnv();
     app.exec(env);
-    
-    println(env.shellScriptCode);
+    execShell(env.shellScriptCode);
+  }
+
+  private def execShell(scriptCode: String) = if(!scriptCode.isEmpty){
+    println(scriptCode);
+    val process = Runtime.getRuntime.exec("/bin/sh");
+    val op = process.getOutputStream;
+    val op2 = new BufferedWriter(new OutputStreamWriter(op, "UTF-8"));
+    try {
+      op2.write(scriptCode);
+    } finally {
+      op2.close();
+    }
+    val exitCode = process.waitFor;
+    if(exitCode!=0){
+      println("exitCode: " + exitCode);
+    }
   }
 
   trait Env {
