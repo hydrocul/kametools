@@ -16,6 +16,7 @@ object App {
     val app = args.toList match {
       case "ls" :: tail => LsApp.create(tail);
       case "open" :: tail => OpenApp.create(tail);
+      case "pull" :: tail => PullApp.create(tail);
       case "setSyncTarget" :: tail => SetSyncTargetApp.create(tail);
       case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
       case _ => throw new Exception("Not Found: " + args);
