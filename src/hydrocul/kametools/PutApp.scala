@@ -6,7 +6,12 @@ case class PutApp(fileSet: FileSet, target: SyncTarget) extends App {
 
   override def exec(env: App.Env){
     val file = fileSet.head;
-    val nameOnTarget = ObjectBank.default.put(fileSet);
+    val name = file.getName();
+    val i = name.lastIndexOf('.');
+    val nameOnTarget = if(i < 0)
+      ObjectBank.default.put(fileSet);
+    else
+      ObjectBank.default.put(fileSet) + name.substring(i);
     val syncFile = SyncFile(file, target, nameOnTarget);
     val syncFiles = ObjectBank.default.getOrElse("_syncFiles", Vector.empty[SyncFile]);
     val newSyncFiles = syncFiles :+ syncFile;
