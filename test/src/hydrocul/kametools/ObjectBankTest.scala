@@ -16,6 +16,9 @@ object ObjectBankTest {
     Test.assertEquals("", List(3, 4, 5),
       ObjectBank.default.getOrElse("test_1", List(5, 6, 7)));
 
+    Test.assertEquals("", "abc",
+      ObjectBank.default.getOrElse("test_1", "abc"));
+
     Test.assertEquals("", List(5, 6, 7),
       ObjectBank.default.getOrElse("test_2", List(5, 6, 7)));
 

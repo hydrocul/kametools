@@ -20,3 +20,11 @@ case class PutApp(fileSet: FileSet, target: SyncTarget) extends App {
 
 }
 
+object PutApp {
+
+  def getTarget(name: String): Option[SyncTarget] = {
+    val targets = ObjectBank.default.getOrElse("_syncTargets", Map.empty[String, SyncTarget]);
+    targets.get(name);
+  }
+
+}

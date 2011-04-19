@@ -18,12 +18,17 @@ case class OpenApp(fileSet: FileSet) extends App {
 
 object OpenApp {
 
-  def create(args: List[String]): OpenApp = create(OpenApp(FileSet.empty), args);
+  def create(args: List[String]): App = create(OpenApp(FileSet.empty), args);
 
-  private def create(app: OpenApp, args: List[String]): OpenApp = {
+  private def create(app: OpenApp, args: List[String]): App = {
     (app, args) match {
       case (OpenApp(fs), arg :: tail) if(fs.isEmpty) =>
         create(OpenApp(LsApp.getFileSet(arg)), tail);
+      case (OpenApp(fs), arg :: tail) if(!fs.isEmpty && tail.isEmpty) =>
+        PutApp.getTarget(arg) match {
+          case Some(target) => PutApp(fs, target);
+          case None => throw new Exception("Unknown target: " + arg);
+        }
       case (OpenApp(fs), Nil) if(!fs.isEmpty) => app;
       case _ => throw new Exception("Unknown arguments: " + args);
     }
