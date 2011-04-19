@@ -1,12 +1,5 @@
 package hydrocul.kametools;
 
-import java.awt.Desktop;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-
-import scala.collection.immutable.Queue;
-
 case class SetSyncTargetApp(name: String, targetDir: String, sshOption: String) extends App {
 
   override def exec(env: App.Env){

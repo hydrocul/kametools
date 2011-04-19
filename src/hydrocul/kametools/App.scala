@@ -17,6 +17,7 @@ object App {
       case "ls" :: tail => LsApp.create(tail);
       case "open" :: tail => OpenApp.create(tail);
       case "setSyncTarget" :: tail => SetSyncTargetApp.create(tail);
+      case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
       case _ => throw new Exception("Not Found: " + args);
     }
     val env = new StandardEnv();
