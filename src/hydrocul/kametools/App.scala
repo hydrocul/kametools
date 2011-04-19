@@ -22,7 +22,7 @@ object App {
       case "setSyncTarget" :: tail => SetSyncTargetApp.create(tail);
       case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
       case "autoLauncher" :: tail => AutoLauncherApp.create(tail);
-      case _ => throw new Exception("Not Found: " + args.toList);
+      case args => LsApp.create(args);
     }
     val env = new StandardEnv();
     app.exec(env);
