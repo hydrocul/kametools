@@ -16,7 +16,7 @@ import org.apache.commons.cli.PosixParser;
 
 case class LsApp(fileSet: FileSet, count: Int = 50,
   timeFormat: String = "%Y-%m-%d-%H%M%S",
-  lineFormat: String = "%1 %2  [%3]") extends App {
+  lineFormat: String = "%2  [%3]") extends App {
 
   override def exec(env: App.Env){
 
