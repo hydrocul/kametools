@@ -57,9 +57,9 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
 
 object LsApp {
 
-  def create(args: List[String]): LsApp = create(LsApp(FileSet.empty), false, args);
+  def create(args: List[String]): App = create(LsApp(FileSet.empty), false, args);
 
-  private def create(app: LsApp, argExists: Boolean, args: List[String]): LsApp = {
+  private def create(app: LsApp, argExists: Boolean, args: List[String]): App = {
     args match {
       case "-t" :: format :: tail => create(LsApp(app.fileSet, app.count,
         format, app.lineFormat), argExists, tail);
@@ -84,6 +84,7 @@ object LsApp {
         app.count, app.timeFormat, app.lineFormat), argExists, tail);
       case "-r" :: tail => create(LsApp(app.fileSet.reverse, app.count,
         app.timeFormat, app.lineFormat), argExists, tail);
+      case "help" :: tail => HelpApp;
       case arg :: tail => create(LsApp(FileSet.concat(app.fileSet, getFileSet(arg)),
         app.count, app.timeFormat, app.lineFormat), true, tail);
       case Nil => if(argExists) app else LsApp(FileSet(new File("./")).getChildren,
@@ -122,6 +123,17 @@ object LsApp {
   private val OptionRPattern2 = "-R(\\d+)-(\\d+)".r;
 
   private val OptionRPattern3 = "-R(\\d+)-".r;
+
+  object HelpApp extends App {
+
+    override def exec(env: App.Env){
+      val msg = List(
+        "print file list. This program is implemented in LsApp.scala."
+      );
+      msg.foreach(env.out.println(_));
+    }
+
+  }
 
 }
 

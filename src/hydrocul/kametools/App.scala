@@ -23,6 +23,7 @@ object App {
       case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
       case "clearSyncFile" :: tail => ClearSyncFileApp.create(tail);
       case "autoLauncher" :: tail => AutoLauncherApp.create(tail);
+      case "help" :: tail => HelpApp;
       case args => LsApp.create(args);
     }
     val env = new StandardEnv();
@@ -44,6 +45,24 @@ object App {
     if(exitCode!=0){
       println("exitCode: " + exitCode);
     }
+  }
+
+  object HelpApp extends App {
+
+    override def exec(env: Env){
+      val msg = List(
+        "ls",
+        "open",
+        "pull",
+        "setSyncTarget",
+        "showSyncFiles",
+        "clearSyncFile",
+        "autoLauncher",
+        "help"
+      );
+      msg.foreach(env.out.println(_));
+    }
+
   }
 
   trait Env {
