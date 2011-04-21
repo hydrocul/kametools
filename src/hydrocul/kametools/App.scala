@@ -32,7 +32,7 @@ object App {
   }
 
   private def execShell(scriptCode: String) = if(!scriptCode.isEmpty){
-    println(scriptCode);
+    print(scriptCode);
     val process = Runtime.getRuntime.exec("/bin/sh");
     val op = process.getOutputStream;
     val op2 = new BufferedWriter(new OutputStreamWriter(op, "UTF-8"));

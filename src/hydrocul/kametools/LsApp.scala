@@ -24,7 +24,7 @@ case class LsApp(fileSet: FileSet, count: Int = 50,
     val lineFormat2 = lineFormat.replaceAll("%([1-9]+)", "%$1\\$s");
 
     def printFile(file: File){
-      val key = ObjectBank.default.put(file);
+      val key = ObjectBank.default.put(FileSet(file));
       val t = new JDate(file.lastModified);
       val ts = timeFormat2.format(t);
       val s = lineFormat2.format(ts, file, key, file.getName);
