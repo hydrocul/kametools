@@ -1,7 +1,10 @@
 package hydrocul.kametools;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,18 +25,37 @@ object App {
       case "setSyncTarget" :: tail => SetSyncTargetApp.create(tail);
       case "showSyncFiles" :: tail => ShowSyncFilesApp.create(tail);
       case "clearSyncFile" :: tail => ClearSyncFileApp.create(tail);
+      case "cp" :: tail => SvnCpApp.create(tail);
       case "autoLauncher" :: tail => AutoLauncherApp.create(tail);
       case "help" :: tail => HelpApp;
       case args => LsApp.create(args);
     }
     val env = new StandardEnv();
     app.exec(env);
-    execShell(env.shellScriptCode);
+    execShell(env.shellScriptCode, env);
   }
 
-  private def execShell(scriptCode: String) = if(!scriptCode.isEmpty){
-    print(scriptCode);
+  private def execShell(scriptCode: String, env: Env) = if(!scriptCode.isEmpty){
+    env.out.print(scriptCode);
     val process = Runtime.getRuntime.exec("/bin/sh");
+    def writeOutput(ip: InputStream){
+      val runnable = new Runnable(){
+        def run(){
+          val buf = new Array[Char](1024);
+          val ip2 = new BufferedReader(new InputStreamReader(ip, "UTF-8"));
+          var len = ip2.read(buf, 0, buf.length);
+          while(len > 0){
+            env.out.write(buf, 0, len);
+            len = ip2.read(buf, 0, buf.length);
+            env.out.flush();
+          }
+        }
+      }
+      val thread = new Thread(runnable);
+      thread.start();
+    }
+    writeOutput(process.getInputStream);
+    writeOutput(process.getErrorStream);
     val op = process.getOutputStream;
     val op2 = new BufferedWriter(new OutputStreamWriter(op, "UTF-8"));
     try {
@@ -42,8 +64,9 @@ object App {
       op2.close();
     }
     val exitCode = process.waitFor;
+    env.out.flush();
     if(exitCode!=0){
-      println("exitCode: " + exitCode);
+      env.out.println("exitCode: " + exitCode);
     }
   }
 
@@ -57,6 +80,7 @@ object App {
         "setSyncTarget",
         "showSyncFiles",
         "clearSyncFile",
+        "cp",
         "autoLauncher",
         "help"
       );
